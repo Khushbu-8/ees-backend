@@ -2,7 +2,7 @@
   "dependencies": {
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.3",
-    "cloudinary": "^2.5.1",
+    "cloudinary": "^1.21.0",
     "cookie-parse": "^0.4.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -17,6 +17,7 @@
     "nodemon": "^3.1.4"
   },
   "scripts": {
-    "start": "nodemon index.js"
+    "start": "nodemon index.js",
+     "build": "npm install --legacy-peer-deps && next build"
   }
 }
