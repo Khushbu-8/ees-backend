@@ -79,7 +79,7 @@ const deleteCategory = async(req,res) => {
         const { categorId } = req.body; 
         console.log(req.body);
         
-        const category = await Banner.findById(categorId);
+        const category = await Category.findById(categorId);
         if (!category) {
           return res.status(404).json({ success: false, message: "category not found" });
         }
