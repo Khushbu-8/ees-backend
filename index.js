@@ -9,10 +9,8 @@ const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const corsOptions = {
-    origin: 'https://ess-frontend-eight.vercel.app', // Allow only your frontend domain
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed HTTP methods
-  allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
-  credentials: true, // If using cookies or authorization headers
+    origin: 'https://ess-frontend-eight.vercel.app', // Client URL
+    credentials: true, // Allow credentials (cookies, headers, etc.)
 };
 app.use(cors(corsOptions));
 app.use(express.json());
