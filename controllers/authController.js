@@ -190,9 +190,10 @@ const registerUserweb = async (req, res) => {
         });
     }
 };
-
 const loginUserweb = async (req, res) => {
     try {
+        console.log(req.body);
+        
         const { phone, password } = req.body;
         if (!phone || !password) {
            
