@@ -1,3 +1,4 @@
+
 const express = require('express')
 const router = express.Router()
 const multer = require('multer');
@@ -28,5 +29,4 @@ router.post('/addCategory',upload.single('category'),addCategory)
 router.post('/updateCategory',upload.single('category'),updateCategory)
 router.delete('/deleteCategory',deleteCategory)
 router.get('/getAllCategory',getAllCategory)
-
 module.exports = router
