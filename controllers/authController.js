@@ -1,3 +1,4 @@
+
 const UserModel= require("../model/user")
 const jwt = require("jsonwebtoken");
 const bcrypt = require('bcrypt')
@@ -376,10 +377,10 @@ const logout = async (req, res) => {
 //         });
 //     }
 // };
-
 const updateProfile = async (req, res) => {
     try {
-      const userId = req.user.id; // Assuming `req.user` contains the authenticated user's details
+      const userId = req.user.id;
+      const profilePic = req.file.path 
       const {
         name,
         email,
@@ -389,22 +390,7 @@ const updateProfile = async (req, res) => {
         businessName,
         businessAddress,
       } = req.body;
-  
-      // Check if at least one field is provided for update
-      if (
-        !name &&
-        !email &&
-        !phone &&
-        !address &&
-        !businessCategory &&
-        !businessName &&
-        !businessAddress
-      ) {
-        return res.status(400).json({
-          success: false,
-          message: 'No fields to update provided',
-        });
-      }
+     
   
       // Prepare the fields to be updated
       const updatedFields = {};
@@ -416,6 +402,7 @@ const updateProfile = async (req, res) => {
           ...address, // Ensure address contains valid subfields
         };
       }
+      if(profilePic) updatedFields.profilePic = profilePic
       if (businessCategory) updatedFields.businessCategory = businessCategory;
       if (businessName) updatedFields.businessName = businessName;
       if (businessAddress) updatedFields.businessAddress = businessAddress;
