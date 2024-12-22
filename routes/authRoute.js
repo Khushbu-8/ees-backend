@@ -1,3 +1,4 @@
+
 const express = require('express');
 const { registerUser, loginUser, registerUserweb, loginUserweb, getalluser, getUser, logout, getAdmin, updateProfile, deleteUser, UpdateUser} = require('../controllers/authController');
 const multer = require("multer")
