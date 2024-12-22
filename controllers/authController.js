@@ -380,17 +380,23 @@ const logout = async (req, res) => {
 const updateProfile = async (req, res) => {
     try {
       const userId = req.user.id;
-      const profilePic = req.file.path 
+      const profilePic = req.file ? req.file.path : null;
+      console.log(req.file,'file',req.body,'bocy',profilePic)  
+
+      // Parse the address field
+      let address;
+      if (req.body.address) {
+        address = JSON.parse(req.body.address);
+      }
+  
       const {
         name,
         email,
         phone,
-        address,
         businessCategory,
         businessName,
         businessAddress,
       } = req.body;
-     
   
       // Prepare the fields to be updated
       const updatedFields = {};
@@ -398,11 +404,9 @@ const updateProfile = async (req, res) => {
       if (email) updatedFields.email = email;
       if (phone) updatedFields.phone = phone;
       if (address) {
-        updatedFields.address = {
-          ...address, // Ensure address contains valid subfields
-        };
+        updatedFields.address = address; // Directly assign the parsed object
       }
-      if(profilePic) updatedFields.profilePic = profilePic
+      if (profilePic) updatedFields.profilePic = profilePic;
       if (businessCategory) updatedFields.businessCategory = businessCategory;
       if (businessName) updatedFields.businessName = businessName;
       if (businessAddress) updatedFields.businessAddress = businessAddress;
@@ -411,10 +415,9 @@ const updateProfile = async (req, res) => {
       const updatedUser = await UserModel.findByIdAndUpdate(
         userId,
         { $set: updatedFields },
-        { new: true, runValidators: true } // Return the updated document and validate inputs
+        { new: true, runValidators: true } // Validate inputs
       );
   
-      // If no user is found, return 404
       if (!updatedUser) {
         return res.status(404).json({
           success: false,
@@ -422,7 +425,6 @@ const updateProfile = async (req, res) => {
         });
       }
   
-      // Success response with updated user data
       return res.status(200).json({
         success: true,
         message: 'Profile updated successfully',
@@ -437,6 +439,7 @@ const updateProfile = async (req, res) => {
       });
     }
   };
+  
 const deleteUser = async(req,res) => {
     try {
        const userId = req.body.id
