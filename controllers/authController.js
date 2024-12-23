@@ -269,6 +269,8 @@ const getAdmin = async(req,res) => {
 const getalluser = async(req,res) => {
     try {
         const user = await UserModel.find({})
+        console.log(user);
+        
         return res.status(200).json({
             success: true,
             message: "User Fetched Succesfully.",
