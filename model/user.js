@@ -1,5 +1,4 @@
-
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(
   {
@@ -91,7 +90,34 @@ const userSchema = new mongoose.Schema(
         },
       },
     ],
+    ratings: [
+      {
+        user: {
+          type: mongoose.Schema.Types.ObjectId, // User who gave the rating
+          ref: "User",
+          required: true,
+        },
+        rating: {
+          type: Number,
+          required: true,
+          min: 1,
+          max: 5, // Restrict ratings between 1 and 5
+        },
+        comment: {
+          type: String, // Optional feedback
+        },
+        date: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
+    averageRating: {
+      type: Number, // Store the average rating for the user
+      default: 0,
+    },
   },
+
   { timestamps: true }
 );
 
