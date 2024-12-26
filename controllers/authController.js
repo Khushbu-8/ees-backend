@@ -620,6 +620,52 @@ const UpdateUser = async (req, res) => {
   }
 };
 
+const setUserStatus = async (req, res) => {
+  try {
+    const userId = req.user.id; // Assuming the user ID is in `req.user` after authentication
+
+    const {  userstatus } = req.body;
+
+    // Validate status
+    if (! userstatus || !['available', 'unavailable'].includes( userstatus)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid status value. Please choose 'available' or 'unavailable'.",
+      });
+    }
+
+    // Update user status in the database
+    const updatedUserstatus = await UserModel.findByIdAndUpdate(
+      userId,
+      {  userstatus },
+      { new: true, runValidators: true } // Ensure validation is applied
+    );
+
+    // If user not found, return an error
+    if (!updatedUserstatus) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Respond with success
+    return res.status(200).json({
+      success: true,
+      message: `User status updated to ${ userstatus}`,
+      user: updatedUserstatus,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred while updating the user status",
+      error: error.message,
+    });
+  }
+};
+
+
 module.exports = {
   registerUser,
   loginUser,
@@ -633,4 +679,5 @@ module.exports = {
   updateProfile,
   deleteUser,
   UpdateUser,
+  setUserStatus
 };

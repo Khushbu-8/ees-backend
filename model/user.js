@@ -116,8 +116,12 @@ const userSchema = new mongoose.Schema(
       type: Number, // Store the average rating for the user
       default: 0,
     },
+    userstatus: {
+      type: String,
+      enum: ['available', 'unavailable'], // Allowed values
+      default: 'available', // Default value
+    },
   },
-
   { timestamps: true }
 );
 
