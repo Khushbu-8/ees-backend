@@ -1,6 +1,7 @@
 const UserModel = require("../model/user");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const { v4: uuidv4 } = require("uuid");
 
 const registerUser = async (req, res) => {
   try {
@@ -119,7 +120,11 @@ const registerUserweb = async (req, res) => {
       businessCategory,
       businessName,
       businessAddress,
+      referralCode
     } = req.body;
+
+    // const referralCode = req.query.referralCode;
+    console.log(req.body.referralCode);
 
     // Check for required fields
     if (
@@ -155,9 +160,23 @@ const registerUserweb = async (req, res) => {
         .send({ success: false, message: "Email already exists" });
     }
 
+    let referrer = null;
+    if (referralCode) {
+      referrer = await UserModel.findOne({ referralCode });
+      if (!referrer) {
+        return res.status(400).send({
+          success: false,
+          message: "Invalid referral code",
+        });
+      }
+    }
+
     // Hash the password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Generate a unique referral code for the new user
+    const newReferralCode = uuidv4();
 
     // Create new user
     const user = new UserModel({
@@ -175,6 +194,8 @@ const registerUserweb = async (req, res) => {
       businessCategory,
       businessName,
       businessAddress,
+      referralCode: newReferralCode,
+      referredBy: referrer ? referrer._id : null,
     });
 
     // Check for JWT_SECRET
@@ -186,6 +207,12 @@ const registerUserweb = async (req, res) => {
     // Save the user to the database
     await user.save();
 
+    // Add the new user to the referrer's referrals array
+    if (referrer) {
+      referrer.referrals.push(user._id);
+      await referrer.save();
+    }
+
     // Generate JWT token
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "24h",
@@ -194,16 +221,24 @@ const registerUserweb = async (req, res) => {
     // Set the token as a cookie
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // Set to 'true' in production
+      secure: true, // Set to 'true' in production
       sameSite: "None", // Adjust as necessary
       maxAge: 3600000, // 1 hour
     });
+
+    // const referralLink = `${process.env.API_URL}/register?referralCode=${newReferralCode}`;
 
     // Respond with success
     return res.status(200).send({
       success: true,
       message: "User registered successfully",
-      user,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        referralCode: newReferralCode,
+        // referralLink,
+      },
       token,
     });
   } catch (error) {
@@ -333,9 +368,9 @@ const getUser = async (req, res) => {
 const logout = async (req, res) => {
   try {
     // Clear the token cookie
-    res.clearCookie("token", {
+    res.clearCookie("refreshToken", {
       httpOnly: true, // Ensure cookie is secure and inaccessible via JavaScript
-      secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+      secure: true, // Use secure cookies in production
       sameSite: "lax",
     });
 
@@ -351,57 +386,7 @@ const logout = async (req, res) => {
     });
   }
 };
-// const updateProfile = async (req, res) => {
-//     try {
-//         const userId = req.user.id; // Assuming the user's ID is stored in `req.user` after authentication middleware
-//         const { name, email, phone, address, businessCategory, businessName, businessAddress } = req.body;
 
-//         // Validate inputs
-//         if (!name && !email && !phone && !address && !businessCategory && !businessName && !businessAddress) {
-//             return res.status(400).send({
-//                 success: false,
-//                 message: "No fields to update provided",
-//             });
-//         }
-
-//         // Prepare the update object
-//         const updatedFields = {};
-//         if (name) updatedFields.name = name;
-//         if (email) updatedFields.email = email;
-//         if (phone) updatedFields.phone = phone;
-//         if (address) updatedFields.address = address;
-//         if (businessCategory) updatedFields.businessCategory = businessCategory;
-//         if (businessName) updatedFields.businessName = businessName;
-//         if (businessAddress) updatedFields.businessAddress = businessAddress;
-
-//         // Update user data in the database
-//         const updatedUser = await UserModel.findByIdAndUpdate(
-//             userId,
-//             { $set: updatedFields },
-//             { new: true, runValidators: true } // `new: true` returns the updated document
-//         );
-
-//         if (!updatedUser) {
-//             return res.status(404).send({
-//                 success: false,
-//                 message: "User not found",
-//             });
-//         }
-
-//         return res.status(200).send({
-//             success: true,
-//             message: "Profile updated successfully",
-//             user: updatedUser,
-//         });
-//     } catch (error) {
-//         console.error(error);
-//         return res.status(500).send({
-//             success: false,
-//             message: "An error occurred while updating the profile",
-//             error: error.message,
-//         });
-//     }
-// };
 const updateProfile = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -488,57 +473,7 @@ const deleteUser = async (req, res) => {
     });
   }
 };
-// const UpdateUser = async(req,res) => {
-//     try {
-//         const userId = req.body; // Assuming the user's ID is stored in `req.user` after authentication middleware
-//         const { name, email, phone, address, businessCategory, businessName, businessAddress } = req.body;
 
-//         // Validate inputs
-//         if (!name && !email && !phone && !address && !businessCategory && !businessName && !businessAddress) {
-//             return res.status(400).send({
-//                 success: false,
-//                 message: "No fields to update provided",
-//             });
-//         }
-
-//         // Prepare the update object
-//         const updatedFields = {};
-//         if (name) updatedFields.name = name;
-//         if (email) updatedFields.email = email;
-//         if (phone) updatedFields.phone = phone;
-//         if (address) updatedFields.address = address;
-//         if (businessCategory) updatedFields.businessCategory = businessCategory;
-//         if (businessName) updatedFields.businessName = businessName;
-//         if (businessAddress) updatedFields.businessAddress = businessAddress;
-
-//         // Update user data in the database
-//         const updatedUser = await UserModel.findByIdAndUpdate(
-//             userId,
-//             { $set: updatedFields },
-//             { new: true, runValidators: true } // `new: true` returns the updated document
-//         );
-
-//         if (!updatedUser) {
-//             return res.status(404).send({
-//                 success: false,
-//                 message: "User not found",
-//             });
-//         }
-
-//         return res.status(200).send({
-//             success: true,
-//             message: "Profile updated successfully",
-//             user: updatedUser,
-//         });
-//     } catch (error) {
-//         console.error(error);
-//         return res.status(500).send({
-//             success: false,
-//             message: "An error occurred while updating the profile",
-//             error: error.message,
-//         });
-//     }
-// }
 const UpdateUser = async (req, res) => {
   try {
     const userId = req.user?.id || req.body.userId; // Use authenticated user's ID or extract from body

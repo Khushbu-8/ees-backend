@@ -4,11 +4,13 @@ const multer = require("multer");
 const cloudinary = require("cloudinary").v2;
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const {
-  addCategory,
-  updateCategory,
-  deleteCategory,
-  getAllCategory,
-} = require("../controllers/categoryController");
+  addbanner,
+  getUserByBanner,
+  updateBanner,
+  deleteBanner,
+  getAllBanners,
+} = require("../controllers/bannerController");
+const { verifyToken } = require("../middleware/auth");
 cloudinary.config({
   cloud_name: "dosudib3y",
   api_key: "159347713485299",
@@ -17,7 +19,7 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: "category",
+    folder: "banner",
     allowed_formats: ["jpg", "png", "jpeg"],
     transformation: [
       {
@@ -29,8 +31,14 @@ const storage = new CloudinaryStorage({
   },
 });
 const upload = multer({ storage: storage });
-router.post("/addCategory", upload.single("category"), addCategory);
-router.post("/updateCategory", upload.single("category"), updateCategory);
-router.delete("/deleteCategory", deleteCategory);
-router.get("/getAllCategory", getAllCategory);
+router.post("/addBanner", verifyToken, upload.single("banner"), addbanner);
+router.get("/getUserByBanner", verifyToken, getUserByBanner);
+router.post(
+  "/updateBanner",
+  verifyToken,
+  upload.single("banner"),
+  updateBanner
+);
+router.delete("/deleteBanner", verifyToken, deleteBanner);
+router.get("/getAllBanners", getAllBanners);
 module.exports = router;

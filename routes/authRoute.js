@@ -11,7 +11,6 @@ const {
   updateProfile,
   deleteUser,
   UpdateUser,
-  setUserStatus
 } = require("../controllers/authController");
 const multer = require("multer");
 const cloudinary = require("cloudinary").v2;
@@ -54,5 +53,4 @@ router.get("/getAdmin", isAdmin, getAdmin);
 router.get("/getAllUser", getalluser);
 router.get("/getUser", verifyToken, getUser);
 router.get("/logout", logout);
-router.put("/setUserStatus",verifyToken, setUserStatus);
 module.exports = router;

@@ -1,6 +1,7 @@
 
 const User = require('../model/user'); // Update the path as needed
 const mongoose = require("mongoose");
+
 const sentRequest = async (req, res) => {
   try {
     const { receiverId } = req.body;

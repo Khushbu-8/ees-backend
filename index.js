@@ -19,7 +19,9 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(express.urlencoded());
-
+app.get('/', (req, res) => {
+    res.send('Hello, world!');  // Root route to test if the server is up
+});
 app.use('/', require('./routes/indexRoute'))
 
 app.listen(port, (err) => {
