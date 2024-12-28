@@ -125,7 +125,7 @@ const CreateOrder = async (req, res) => {
 // Controller to verify payment by fetching payment details using payment_id
 const verifyPayment = async (req, res) => {
   try {
-    const { payment_id } = req.params;
+    const {  payment_id } = req.body;
 
     if (!payment_id) {
       return res
