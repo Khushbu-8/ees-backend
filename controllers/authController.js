@@ -120,11 +120,10 @@ const registerUserweb = async (req, res) => {
       businessCategory,
       businessName,
       businessAddress,
-      referralCode
     } = req.body;
 
-    // const referralCode = req.query.referralCode;
-    console.log(req.body.referralCode);
+    const referralCode = req.query.referralCode;
+    console.log(req.query);
 
     // Check for required fields
     if (
@@ -226,7 +225,7 @@ const registerUserweb = async (req, res) => {
       maxAge: 3600000, // 1 hour
     });
 
-    // const referralLink = `${process.env.API_URL}/register?referralCode=${newReferralCode}`;
+    const referralLink = `${process.env.API_URL}/auth/registerUserweb?referralCode=${newReferralCode}`;
 
     // Respond with success
     return res.status(200).send({
@@ -237,7 +236,7 @@ const registerUserweb = async (req, res) => {
         name: user.name,
         email: user.email,
         referralCode: newReferralCode,
-        // referralLink,
+        referralLink,
       },
       token,
     });
@@ -368,7 +367,7 @@ const getUser = async (req, res) => {
 const logout = async (req, res) => {
   try {
     // Clear the token cookie
-    res.clearCookie("refreshToken", {
+    res.clearCookie("token", {
       httpOnly: true, // Ensure cookie is secure and inaccessible via JavaScript
       secure: true, // Use secure cookies in production
       sameSite: "lax",
@@ -559,20 +558,21 @@ const setUserStatus = async (req, res) => {
   try {
     const userId = req.user.id; // Assuming the user ID is in `req.user` after authentication
 
-    const {  userstatus } = req.body;
+    const { userstatus } = req.body;
 
     // Validate status
-    if (! userstatus || !['available', 'unavailable'].includes( userstatus)) {
+    if (!userstatus || !["available", "unavailable"].includes(userstatus)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid status value. Please choose 'available' or 'unavailable'.",
+        message:
+          "Invalid status value. Please choose 'available' or 'unavailable'.",
       });
     }
 
     // Update user status in the database
     const updatedUserstatus = await UserModel.findByIdAndUpdate(
       userId,
-      {  userstatus },
+      { userstatus },
       { new: true, runValidators: true } // Ensure validation is applied
     );
 
@@ -587,7 +587,7 @@ const setUserStatus = async (req, res) => {
     // Respond with success
     return res.status(200).json({
       success: true,
-      message: `User status updated to ${ userstatus}`,
+      message: `User status updated to ${userstatus}`,
       user: updatedUserstatus,
     });
   } catch (error) {
@@ -599,7 +599,6 @@ const setUserStatus = async (req, res) => {
     });
   }
 };
-
 
 module.exports = {
   registerUser,
@@ -614,5 +613,5 @@ module.exports = {
   updateProfile,
   deleteUser,
   UpdateUser,
-  setUserStatus
+  setUserStatus,
 };
