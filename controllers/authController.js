@@ -122,8 +122,8 @@ const registerUserweb = async (req, res) => {
       businessAddress,
     } = req.body;
 
-    const referralCode = req.query.referralCode;
-    console.log(req.query);
+    const referralCode = req.body.referralCode;
+    // console.log(req.body,"reffrele");
 
     // Check for required fields
     if (
@@ -226,7 +226,8 @@ const registerUserweb = async (req, res) => {
     });
 
     const referralLink = `${process.env.API_URL}/auth/registerUserweb?referralCode=${newReferralCode}`;
-
+    console.log(referralLink);
+    
     // Respond with success
     return res.status(200).send({
       success: true,
@@ -367,7 +368,7 @@ const getUser = async (req, res) => {
 const logout = async (req, res) => {
   try {
     // Clear the token cookie
-    res.clearCookie("token", {
+    res.clearCookie("refreshToken", {
       httpOnly: true, // Ensure cookie is secure and inaccessible via JavaScript
       secure: true, // Use secure cookies in production
       sameSite: "lax",
@@ -599,6 +600,48 @@ const setUserStatus = async (req, res) => {
     });
   }
 };
+const updateRoleByEmail = async (req, res) => {
+  try {
+    const { email, role } = req.body;
+
+    // Validate role
+    if (!role || !['User', 'Admin'].includes(role)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid role value. Please choose 'User' or 'Admin'.",
+      });
+    }
+
+    // Find the user by email and update their role
+    const updatedUser = await UserModel.findOneAndUpdate(
+      { email: email },
+      { role: role },
+      { new: true, runValidators: true }
+    );
+
+    // If user not found, return an error
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Respond with success
+    return res.status(200).json({
+      success: true,
+      message: `User role updated to ${role}`,
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred while updating the user role",
+      error: error.message,
+    });
+  }
+};
 
 module.exports = {
   registerUser,
@@ -614,4 +657,5 @@ module.exports = {
   deleteUser,
   UpdateUser,
   setUserStatus,
+  updateRoleByEmail
 };

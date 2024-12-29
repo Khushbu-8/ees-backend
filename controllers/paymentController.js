@@ -126,7 +126,7 @@ const CreateOrder = async (req, res) => {
 const verifyPayment = async (req, res) => {
   try {
     const {  payment_id } = req.body;
-
+      
     if (!payment_id) {
       return res
         .status(400)
@@ -135,12 +135,31 @@ const verifyPayment = async (req, res) => {
 
     // Fetch payment details from Razorpay using payment_id
     const paymentDetails = await razorpayInstance.payments.fetch(payment_id);
-
     if (!paymentDetails) {
       return res
         .status(404)
         .json({ success: false, message: "Payment not found" });
     }
+ // If payment is authorized, capture it
+ if (paymentDetails.status === "authorized") {
+  try {
+    const capturedPayment = await razorpayInstance.payments.capture(payment_id, paymentDetails.amount);
+    // console.log("Captured Payment:", capturedPayment);
+
+    return res.status(200).json({
+      success: true,
+      message: "Payment captured and verified successfully",
+      paymentDetails: capturedPayment,
+    });
+  } catch (error) {
+    console.error("Error capturing payment:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to capture payment",
+      error: error.message || "Unknown error",
+    });
+  }
+}
 
     // Check if payment status is 'captured' (successful payment)
     if (paymentDetails.status === "captured") {
