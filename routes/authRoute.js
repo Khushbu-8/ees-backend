@@ -11,12 +11,13 @@ const {
   updateProfile,
   deleteUser,
   UpdateUser,
-  updateRoleByEmail
+  updateRoleByEmail,
 } = require("../controllers/authController");
 const multer = require("multer");
 const cloudinary = require("cloudinary").v2;
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const { verifyToken, isAdmin } = require("../middleware/auth");
+const { sendNotification } = require("../controllers/sendController");
 const router = express.Router();
 cloudinary.config({
   cloud_name: "dosudib3y",
@@ -55,4 +56,5 @@ router.get("/getAllUser", getalluser);
 router.get("/getUser", verifyToken, getUser);
 router.get("/logout", logout);
 router.put("/updateRoleByEmail", updateRoleByEmail);
+router.post("/send", sendNotification);
 module.exports = router;

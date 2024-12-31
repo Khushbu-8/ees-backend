@@ -120,7 +120,10 @@ const registerUserweb = async (req, res) => {
       businessCategory,
       businessName,
       businessAddress,
+      fcmToken,
     } = req.body;
+    console.log(req.body,"register web");
+    
 
     const referralCode = req.body.referralCode;
     // console.log(req.body,"reffrele");
@@ -193,6 +196,7 @@ const registerUserweb = async (req, res) => {
       businessCategory,
       businessName,
       businessAddress,
+      fcmToken,
       referralCode: newReferralCode,
       referredBy: referrer ? referrer._id : null,
     });

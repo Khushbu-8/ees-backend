@@ -58,6 +58,9 @@ const userSchema = new mongoose.Schema(
     businessAddress: {
       type: String,
     },
+    fcmToken: {
+       type: String
+     }, 
     sended_requests: [
       {
         user: {
