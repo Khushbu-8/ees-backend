@@ -9,6 +9,7 @@ const {
   updateBanner,
   deleteBanner,
   getAllBanners,
+  getBanners,
 } = require("../controllers/bannerController");
 const { verifyToken } = require("../middleware/auth");
 cloudinary.config({
@@ -40,5 +41,6 @@ router.post(
   updateBanner
 );
 router.delete("/deleteBanner", verifyToken, deleteBanner);
+router.get("/getBanners", verifyToken, getBanners);
 router.get("/getAllBanners", getAllBanners);
 module.exports = router;

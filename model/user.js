@@ -60,7 +60,12 @@ const userSchema = new mongoose.Schema(
     },
     fcmToken: {
        type: String
-     }, 
+     },
+     userstatus: {
+      type: String,
+      enum: ['available', 'unavailable'], // Allowed values
+      default: 'available', // Default value
+    }, 
     sended_requests: [
       {
         user: {

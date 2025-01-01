@@ -31,6 +31,21 @@ const addbanner = async (req, res) => {
         });
     }
 };
+const getBanners = async (req, res) => {
+    // console.log('req.user:', req.user); // Log req.user for debugging
+
+    if (!req.user || !req.user.id) {
+        return res.status(400).send({ message: 'User not authenticated' });
+    }
+
+    try {
+        const banners = await Banner.find({ userId: req.user.id });
+        return res.status(200).send({ success: true, banners });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).send({ success: false, message: 'An error occurred', error: error.message });
+    }
+};
 const getUserByBanner = async (req, res) => {
     try {
         const  userId  = req.user.id;
@@ -126,5 +141,5 @@ const getAllBanners = async (req, res) => {
     }
 }
 module.exports = {
-    addbanner,getUserByBanner,updateBanner,deleteBanner,getAllBanners
+    addbanner,getUserByBanner,updateBanner,deleteBanner,getAllBanners,getBanners
 }

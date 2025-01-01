@@ -410,6 +410,7 @@ const updateProfile = async (req, res) => {
       businessCategory,
       businessName,
       businessAddress,
+      fcmToken,
     } = req.body;
 
     // Prepare the fields to be updated
@@ -424,8 +425,9 @@ const updateProfile = async (req, res) => {
     if (businessCategory) updatedFields.businessCategory = businessCategory;
     if (businessName) updatedFields.businessName = businessName;
     if (businessAddress) updatedFields.businessAddress = businessAddress;
+    if (fcmToken) updatedFields.fcmToken = fcmToken;
 
-    // Update user data in the database
+    // Update user data in the databas
     const updatedUser = await UserModel.findByIdAndUpdate(
       userId,
       { $set: updatedFields },
@@ -604,6 +606,7 @@ const setUserStatus = async (req, res) => {
     });
   }
 };
+
 const updateRoleByEmail = async (req, res) => {
   try {
     const { email, role } = req.body;
