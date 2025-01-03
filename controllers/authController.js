@@ -386,7 +386,8 @@ const logout = async (req, res) => {
       secure: true, // Use secure cookies in production
       sameSite: "lax",
     });
-
+      console.log("logout");
+      
     return res.status(200).send({
       success: true,
       message: "Logout successful",
