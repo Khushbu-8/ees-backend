@@ -254,17 +254,19 @@ const registerUserweb = async (req, res) => {
     });
   }
 };
-const loginUserweb = async (req, res) => {
+const loginUserweb = async (req, res) => { 
   try {
     console.log(req.body);
 
-    const { phone, password } = req.body;
+    const { phone, password, fcmToken } = req.body; // Include fcmToken in the request body
     if (!phone || !password) {
       return res.status(400).send({
         success: false,
         message: "Phone and Password are required",
       });
     }
+
+    // Check if user exists
     const user = await UserModel.findOne({ phone });
     if (!user) {
       return res.status(400).json({
@@ -280,6 +282,12 @@ const loginUserweb = async (req, res) => {
         success: false,
         message: "Invalid Phone or Password",
       });
+    }
+
+    // Update FCM token if provided
+    if (fcmToken) {
+      user.fcmToken = fcmToken; // Ensure your UserModel schema has an `fcmToken` field
+      await user.save();
     }
 
     // Generate token and set cookie
@@ -308,6 +316,7 @@ const loginUserweb = async (req, res) => {
     });
   }
 };
+
 const getAdmin = async (req, res) => {
   try {
     res.status(200).send({
@@ -329,7 +338,7 @@ const getalluser = async (req, res) => {
     const user = await UserModel.find({}).select(
       "-received_requests -sended_requests"
     );
-    console.log(user);
+    // console.log(user);
 
     return res.status(200).json({
       success: true,
