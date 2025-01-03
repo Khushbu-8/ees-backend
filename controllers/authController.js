@@ -380,19 +380,22 @@ const getUser = async (req, res) => {
 };
 const logout = async (req, res) => {
   try {
-    // Clear the token cookie
+    // Clear the refreshToken cookie
     res.clearCookie("refreshToken", {
-      httpOnly: true, // Ensure cookie is secure and inaccessible via JavaScript
-      secure: true, // Use secure cookies in production
+      httpOnly: true,
+      secure: true, // Use true in production (HTTPS)
       sameSite: "lax",
+      path: "/", // Match path when the cookie was set
     });
-      console.log("logout");
-      
+
+    console.log("Logout successful");
+
     return res.status(200).send({
       success: true,
       message: "Logout successful",
     });
   } catch (error) {
+    console.error("Logout error:", error);
     return res.status(500).send({
       success: false,
       message: "An error occurred during logout",
@@ -400,6 +403,7 @@ const logout = async (req, res) => {
     });
   }
 };
+
 
 const updateProfile = async (req, res) => {
   try {
