@@ -166,35 +166,29 @@ const getUserRating = async (req, res) => {
     if (!userId) {
       return res
         .status(400)
-        .json({ message: "Service provider ID is required." });
+        .json({ message: "User ID is required." });
     }
 
-    // Find the service provider
-    const serviceProvider = await User.findById(userId).select(
+    // Find the user
+    const user = await User.findById(userId).select(
       "name email ratings averageRating"
     );
-    console.log(serviceProvider, "sp");
-    if (!serviceProvider) {
-      return res.status(404).json({ message: "Service provider not found." });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
     }
 
-    // Find the user's rating
-    const userRating = serviceProvider.ratings.find(
+    // Retrieve the user's rating (if it exists)
+    const userRating = user.ratings.find(
       (rating) => rating.user.toString() === userId.toString()
     );
 
-    const userAvgRating = serviceProvider.averageRating;
-    console.log(userAvgRating, "avg");
-
-    if (!userAvgRating) {
-      return res
-        .status(404)
-        .json({ message: "No rating found for this user." });
-    }
+    // Calculate the average rating or set it to 0 if there are no ratings
+    const userAvgRating = user.averageRating || 0;
 
     res.status(200).json({
       message: "User rating retrieved successfully.",
-      rating: userRating,
+      rating: userRating || null, // Return `null` if no specific rating is found
       average: userAvgRating,
     });
   } catch (error) {
@@ -202,5 +196,6 @@ const getUserRating = async (req, res) => {
     res.status(500).json({ message: "Internal server error." });
   }
 };
+
 
 module.exports = { addRating, getUserRating };
