@@ -407,20 +407,17 @@ const logout = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user.id; // Assumes you have middleware setting req.user
     const profilePic = req.file ? req.file.path : null;
-    console.log(req.file, "file", req.body, "bocy", profilePic);
 
-    // Parse the address field
-    let address;
-    if (req.body.address) {
-      address = JSON.parse(req.body.address);
-    }
+    console.log(req.file, "Uploaded File:", req.body, "Request Body:", profilePic);
 
+    // Extract fields from the request body
     const {
       name,
       email,
       phone,
+      address, // Address should be sent as a JSON object from the frontend
       businessCategory,
       businessName,
       businessAddress,
@@ -429,11 +426,21 @@ const updateProfile = async (req, res) => {
 
     // Prepare the fields to be updated
     const updatedFields = {};
+
     if (name) updatedFields.name = name;
     if (email) updatedFields.email = email;
     if (phone) updatedFields.phone = phone;
     if (address) {
-      updatedFields.address = address; // Directly assign the parsed object
+      try {
+        // If address is sent as a JSON string, parse it
+        const parsedAddress = typeof address === "string" ? JSON.parse(address) : address;
+        updatedFields.address = parsedAddress;
+      } catch (error) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid address format. Address must be a valid JSON object.",
+        });
+      }
     }
     if (profilePic) updatedFields.profilePic = profilePic;
     if (businessCategory) updatedFields.businessCategory = businessCategory;
@@ -441,11 +448,11 @@ const updateProfile = async (req, res) => {
     if (businessAddress) updatedFields.businessAddress = businessAddress;
     if (fcmToken) updatedFields.fcmToken = fcmToken;
 
-    // Update user data in the databas
+    // Update user data in the database
     const updatedUser = await UserModel.findByIdAndUpdate(
       userId,
       { $set: updatedFields },
-      { new: true, runValidators: true } // Validate inputs
+      { new: true, runValidators: true } // Validate fields before updating
     );
 
     if (!updatedUser) {
