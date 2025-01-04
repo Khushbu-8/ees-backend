@@ -100,10 +100,10 @@ const addRating = async (req, res) => {
         .json({ message: "Service provider ID and rating are required." });
     }
 
-    if (rating < 1 || rating > 5) {
+    if (rating < 1 || rating > 10) {
       return res
         .status(400)
-        .json({ message: "Rating must be between 1 and 5." });
+        .json({ message: "Rating must be between 1 and 10." });
     }
 
     // Find the service provider

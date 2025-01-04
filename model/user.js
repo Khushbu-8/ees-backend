@@ -109,7 +109,7 @@ const userSchema = new mongoose.Schema(
           type: Number,
           required: true,
           min: 1,
-          max: 5, // Restrict ratings between 1 and 5
+          max: 10, // Restrict ratings between 1 and 5
         },
         comment: {
           type: String, // Optional feedback
