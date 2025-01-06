@@ -108,170 +108,153 @@ const loginUser = async (req, res) => {
     });
   }
 };
-
-const registerUserweb = async (req, res) => {
-  try {
-    const {
-      name,
-      email,
-      password,
-      confirmpassword,
-      phone,
-      address: { area, city, state, country, pincode }, // Destructure address fields
-      businessCategory,
-      businessName,
-      businessAddress,
-      fcmToken,
-    } = req.body;
-    console.log(req.body,"register web");
+// const registerUserweb = async (req, res) => {
+//   try {
+//     const {
+//       name,
+//       email,
+//       password,
+//       confirmpassword,
+//       phone,
+//       address: { area, city, state, country, pincode }, // Destructure address fields
+//       businessCategory,
+//       businessName,
+//       businessAddress,
+//       fcmToken,
+//     } = req.body;
+//     console.log(req.body,"register web");
     
 
-    const referralCode = req.body.referralCode;
-    // console.log(req.body,"reffrele");
+//     const referralCode = req.body.referralCode;
+//     // console.log(req.body,"reffrele");
 
-    // Check for required fields
-    if (
-      !name ||
-      !email ||
-      !password ||
-      !confirmpassword ||
-      !phone ||
-      !area ||
-      !city ||
-      !state ||
-      !country ||
-      !pincode
-    ) {
-      return res
-        .status(400)
-        .send({ success: false, message: "Please fill all the fields" });
-    }
+//     // Check for required fields
+//     if (
+//       !name ||
+//       !email ||
+//       !password ||
+//       !confirmpassword ||
+//       !phone ||
+//       !area ||
+//       !city ||
+//       !state ||
+//       !country ||
+//       !pincode
+//     ) {
+//       return res
+//         .status(400)
+//         .send({ success: false, message: "Please fill all the fields" });
+//     }
 
-    // Validate password and confirm password
-    if (password !== confirmpassword) {
-      return res.status(400).send({
-        success: false,
-        message: "Password and Confirm Password don't match",
-      });
-    }
+//     // Validate password and confirm password
+//     if (password !== confirmpassword) {
+//       return res.status(400).send({
+//         success: false,
+//         message: "Password and Confirm Password don't match",
+//       });
+//     }
 
-    // Check if email already exists
-    const userExist = await UserModel.findOne({ email: email });
-    if (userExist) {
-      return res
-        .status(400)
-        .send({ success: false, message: "Email already exists" });
-    }
+//     // Check if email already exists
+//     const userExist = await UserModel.findOne({ email: email });
+//     if (userExist) {
+//       return res
+//         .status(400)
+//         .send({ success: false, message: "Email already exists" });
+//     }
 
-    let referrer = null;
-    if (referralCode) {
-      referrer = await UserModel.findOne({ referralCode });
-      if (!referrer) {
-        return res.status(400).send({
-          success: false,
-          message: "Invalid referral code",
-        });
-      }
-    }
+//     let referrer = null;
+//     if (referralCode) {
+//       referrer = await UserModel.findOne({ referralCode });
+//       if (!referrer) {
+//         return res.status(400).send({
+//           success: false,
+//           message: "Invalid referral code",
+//         });
+//       }
+//     }
 
-    // Hash the password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+//     // Hash the password
+//     const salt = await bcrypt.genSalt(10);
+//     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Generate a unique referral code for the new user
-    const newReferralCode = uuidv4();
+//     // Generate a unique referral code for the new user
+//     const newReferralCode = uuidv4();
 
-    // Create new user
-    const user = new UserModel({
-      name,
-      email,
-      password: hashedPassword,
-      phone,
-      address: {
-        area,
-        city,
-        state,
-        country,
-        pincode,
-      },
-      businessCategory,
-      businessName,
-      businessAddress,
-      fcmToken,
-      referralCode: newReferralCode,
-      referredBy: referrer ? referrer._id : [],
-    });
+//     // Create new user
+//     const user = new UserModel({
+//       name,
+//       email,
+//       password: hashedPassword,
+//       phone,
+//       address: {
+//         area,
+//         city,
+//         state,
+//         country,
+//         pincode,
+//       },
+//       businessCategory,
+//       businessName,
+//       businessAddress,
+//       fcmToken,
+//       referralCode: newReferralCode,
+//       referredBy: referrer ? referrer._id : null,
+//     });
 
-    // Check for JWT_SECRET
-    console.log("JWT_SECRET:", process.env.JWT_SECRET);
-    if (!process.env.JWT_SECRET) {
-      throw new Error("JWT_SECRET environment variable is not defined");
-    }
+//     // Check for JWT_SECRET
+//     console.log("JWT_SECRET:", process.env.JWT_SECRET);
+//     if (!process.env.JWT_SECRET) {
+//       throw new Error("JWT_SECRET environment variable is not defined");
+//     }
 
-    // Save the user to the database
-    await user.save();
+//     // Save the user to the database
+//     await user.save();
 
-    // // Add the new user to the referrer's referrals array
-    // if (referrer) {
-    //   referrer.referrals.push(user._id);
-    //   await referrer.save();
-    // }
+//     // Add the new user to the referrer's referrals array
+//     if (referrer) {
+//       referrer.referrals.push(user._id);
+//       await referrer.save();
+//     }
 
-    // Generate JWT token
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "24h",
-    });
+//     // Generate JWT token
+//     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+//       expiresIn: "24h",
+//     });
 
-    // Set the token as a cookie
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: true, // Set to 'true' in production
-      sameSite: "None", // Adjust as necessary
-      maxAge: 3600000, // 1 hour
-    });
+//     // Set the token as a cookie
+//     res.cookie("token", token, {
+//       httpOnly: true,
+//       secure: true, // Set to 'true' in production
+//       sameSite: "None", // Adjust as necessary
+//       maxAge: 3600000, // 1 hour
+//     });
 
-    const referralLink = `${process.env.API_URL}/auth/registerUserweb?referralCode=${newReferralCode}`;
-    console.log(referralLink);
+//     const referralLink = `${process.env.API_URL}/auth/registerUserweb?referralCode=${newReferralCode}`;
+//     console.log(referralLink);
     
-    // Respond with success
-    return res.status(200).send({
-      success: true,
-      message: "User registered successfully",
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        referralCode: newReferralCode,
-        referralLink,
-      },
-      token,
-    });
-  } catch (error) {
-    console.log(error);
-    return res.status(500).send({
-      success: false,
-      message: "An error occurred during registration",
-      error: error.message,
-    });
-  }
-};
+//     // Respond with success
+//     return res.status(200).send({
+//       success: true,
+//       message: "User registered successfully",
+//       user: {
+//         id: user._id,
+//         name: user.name,
+//         email: user.email,
+//         referralCode: newReferralCode,
+//         referralLink,
+//       },
+//       token,
+//     });
+//   } catch (error) {
+//     console.log(error);
+//     return res.status(500).send({
+//       success: false,
+//       message: "An error occurred during registration",
+//       error: error.message,
+//     });
+//   }
+// };
 
-// Function to update the referral chain
-const updateReferralChain = async (referrerId, newUserId) => {
-  // Find the referrer
-  const referrer = await UserModel.findById(referrerId);
-
-  if (referrer) {
-    // Add the new user to the referrer's referrals array
-    referrer.referrals.push(newUserId);
-    await referrer.save();
-
-    // Recursively update the chain for each referrer in the chain
-    for (const parentReferrerId of referrer.referredBy) {
-      await updateReferralChain(parentReferrerId, newUserId);
-    }
-  }
-};
 // const registerUserweb = async (req, res) => {
 //   try {
 //     const {
@@ -419,136 +402,166 @@ const updateReferralChain = async (referrerId, newUserId) => {
 //   }
 // };
 
+const registerUserweb = async (req, res) => {
+  try {
+    const {
+      name,
+      email,
+      password,
+      confirmpassword,
+      phone,
+      address: { area, city, state, country, pincode }, // Destructure address fields
+      businessCategory,
+      businessName,
+      businessAddress,
+      fcmToken,
+    } = req.body;
+    console.log(req.body,"register web");
+    
 
-// const registerUserweb = async (req, res) => {
-//   try {
-//     const {
-//       name,
-//       email,
-//       password,
-//       confirmpassword,
-//       phone,
-//       address: { area, city, state, country, pincode },
-//       businessCategory,
-//       businessName,
-//       businessAddress,
-//       fcmToken,
-//     } = req.body;
+    const referralCode = req.body.referralCode;
+    // console.log(req.body,"reffrele");
 
-//     const referralCode = req.body.referralCode;
+    // Check for required fields
+    if (
+      !name ||
+      !email ||
+      !password ||
+      !confirmpassword ||
+      !phone ||
+      !area ||
+      !city ||
+      !state ||
+      !country ||
+      !pincode
+    ) {
+      return res
+        .status(400)
+        .send({ success: false, message: "Please fill all the fields" });
+    }
 
-//     // Check for required fields
-//     if (!name || !email || !password || !confirmpassword || !phone || !area || !city || !state || !country || !pincode) {
-//       return res.status(400).send({ success: false, message: "Please fill all the fields" });
-//     }
+    // Validate password and confirm password
+    if (password !== confirmpassword) {
+      return res.status(400).send({
+        success: false,
+        message: "Password and Confirm Password don't match",
+      });
+    }
 
-//     // Validate password and confirm password
-//     if (password !== confirmpassword) {
-//       return res.status(400).send({ success: false, message: "Password and Confirm Password don't match" });
-//     }
+    // Check if email already exists
+    const userExist = await UserModel.findOne({ email: email });
+    if (userExist) {
+      return res
+        .status(400)
+        .send({ success: false, message: "Email already exists" });
+    }
 
-//     // Check if email already exists
-//     const userExist = await UserModel.findOne({ email });
-//     if (userExist) {
-//       return res.status(400).send({ success: false, message: "Email already exists" });
-//     }
+    let referrer = null;
+    if (referralCode) {
+      referrer = await UserModel.findOne({ referralCode });
+      if (!referrer) {
+        return res.status(400).send({
+          success: false,
+          message: "Invalid referral code",
+        });
+      }
+    }
 
-//     let referrer = ;
-//     let secondLevelReferrer = ;
-//     let thirdLevelReferrer = ;
+    // Hash the password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
-//     if (referralCode) {
-//       referrer = await UserModel.findOne({ referralCode });
-//       if (!referrer) {
-//         return res.status(400).send({ success: false, message: "Invalid referral code" });
-//       }
-//       if (referrer.referredBy.length > 0) {
-//         secondLevelReferrer = await UserModel.findById(referrer.referredBy[0]);
-//         if (secondLevelReferrer && secondLevelReferrer.referredBy.length > 0) {
-//           thirdLevelReferrer = await UserModel.findById(secondLevelReferrer.referredBy[0]);
-//         }
-//       }
-//     }
+    // Generate a unique referral code for the new user
+    const newReferralCode = uuidv4();
 
-//     // Hash the password
-//     const salt = await bcrypt.genSalt(10);
-//     const hashedPassword = await bcrypt.hash(password, salt);
+    // Create new user
+    const user = new UserModel({
+      name,
+      email,
+      password: hashedPassword,
+      phone,
+      address: {
+        area,
+        city,
+        state,
+        country,
+        pincode,
+      },
+      businessCategory,
+      businessName,
+      businessAddress,
+      fcmToken,
+      referralCode: newReferralCode,
+      referredBy: referrer ? referrer._id : [],
+    });
 
-//     // Generate a unique referral code for the new user
-//     const newReferralCode = uuidv4();
+    // Check for JWT_SECRET
+    console.log("JWT_SECRET:", process.env.JWT_SECRET);
+    if (!process.env.JWT_SECRET) {
+      throw new Error("JWT_SECRET environment variable is not defined");
+    }
 
-//     // Create new user
-//     const user = new UserModel({
-//       name,
-//       email,
-//       password: hashedPassword,
-//       phone,
-//       address: { area, city, state, country, pincode },
-//       businessCategory,
-//       businessName,
-//       businessAddress,
-//       fcmToken,
-//       referralCode: newReferralCode,
-//       referredBy: referrer ? [referrer._id] : [],
-//     });
+    // Save the user to the database
+    await user.save();
+    
+    if (referrer) {
+      await updateReferralChain(referrer._id, user._id);
+    }
+    // Generate JWT token
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "24h",
+    });
 
-//     // Save the user to the database
-//     await user.save();
+    // Set the token as a cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true, // Set to 'true' in production
+      sameSite: "None", // Adjust as necessary
+      maxAge: 3600000, // 1 hour
+    });
 
-//     // Add the new user to the referrer's referrals array
-//     if (referrer) {
-//       referrer.referrals.push(user._id);
-//       await referrer.save();
-//     }
+    const referralLink = `${process.env.API_URL}/auth/registerUserweb?referralCode=${newReferralCode}`;
+    console.log(referralLink);
+    
+    // Respond with success
+    return res.status(200).send({
+      success: true,
+      message: "User registered successfully",
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        referralCode: newReferralCode,
+        referralLink,
+      },
+      token,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      success: false,
+      message: "An error occurred during registration",
+      error: error.message,
+    });
+  }
+};
+// Function to update the referral chain
+const updateReferralChain = async (referrerId, newUserId) => {
+  // Find the referrer
+  const referrer = await UserModel.findById(referrerId);
 
-//     if (secondLevelReferrer) {
-//       secondLevelReferrer.referrals.push(user._id);
-//       await secondLevelReferrer.save();
-//     }
+  if (referrer) {
+    // Add the new user to the referrer's referrals array
+    referrer.referrals.push(newUserId);
+    await referrer.save();
 
-//     if (thirdLevelReferrer) {
-//       thirdLevelReferrer.referrals.push(user._id);
-//       await thirdLevelReferrer.save();
-//     }
+    // Recursively update the chain for each referrer in the chain
+    for (const parentReferrerId of referrer.referredBy) {
+      await updateReferralChain(parentReferrerId, newUserId);
+    }
+  }
+};
 
-//     // Generate JWT token
-//     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "24h" });
-
-//     // Populate referredBy with name and email
-//     const populatedUser = await UserModel.findById(user._id).populate({
-//       path: 'referredBy',
-//       select: 'name email',
-//     });
-
-//     // Set the token as a cookie
-//     res.cookie("token", token, {
-//       httpOnly: true,
-//       secure: true,
-//       sameSite: "None",
-//       maxAge: 3600000,
-//     });
-
-//     const referralLink = `${process.env.API_URL}/auth/registerUserweb?referralCode=${newReferralCode}`;
-
-//     // Respond with success
-//     return res.status(200).send({
-//       success: true,
-//       message: "User registered successfully",
-//       user: {
-//         id: populatedUser._id,
-//         name: populatedUser.name,
-//         email: populatedUser.email,
-//         referralCode: newReferralCode,
-//         referralLink,
-//         referredBy: populatedUser.referredBy,
-//       },
-//       token,
-//     });
-//   } catch (error) {
-//     console.log(error);
-//     return res.status(500).send({ success: false, message: "An error occurred during registration", error: error.message });
-//   }
-// };
 const loginUserweb = async (req, res) => { 
   try {
     console.log(req.body);
