@@ -33,7 +33,7 @@ const storage = new CloudinaryStorage({
 });
 const upload = multer({ storage: storage });
 router.post("/addBanner", verifyToken, upload.single("banner"), addbanner);
-router.get("/getUserByBanner", verifyToken, getUserByBanner);
+router.get("/getUserByBanner/:bannerId", getUserByBanner);
 router.post(
   "/updateBanner",
   verifyToken,

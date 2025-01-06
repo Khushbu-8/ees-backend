@@ -1,5 +1,8 @@
 const Banner = require('../model/banner')
 const cloudinary = require('cloudinary').v2;
+const UserModel = require("../model/user"); // Adjust path based on your project structure
+const mongoose = require('mongoose');
+
 const getPublicIdFromUrl = (url) => {
     const regex = /\/(?:v\d+\/)?([^\/]+)\/([^\/]+)\.[a-z]+$/;
     const match = url.match(regex);
@@ -46,30 +49,55 @@ const getBanners = async (req, res) => {
         return res.status(500).send({ success: false, message: 'An error occurred', error: error.message });
     }
 };
+// const getUserByBanner = async (req, res) => {
+//     try {
+//         const  userId  = req.user.id;
+//         const banner = await Banner.findOne({userId})
+//         if (!banner) {
+//             return res.status(404).send({
+//                 success: false,
+//                 message: "Banner not found",
+//             });
+//         }
+//         return res.status(200).send({
+//             success: true,
+//             message: "User fetched successfully",
+//             banner
+//         });
+//     } catch (error) {
+//         console.log(error);
+//         return res.status(500).send({
+//             success: false,
+//             message: "An error occurred while fetching the user",
+//             error: error.message,
+//         });
+//     }
+// };
 const getUserByBanner = async (req, res) => {
+    const { bannerId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(bannerId)) {
+        return res.status(400).json({ message: 'Invalid bannerId format' });
+    }
+
     try {
-        const  userId  = req.user.id;
-        const banner = await Banner.findOne({userId})
+        const banner = await Banner.findById(bannerId);
         if (!banner) {
-            return res.status(404).send({
-                success: false,
-                message: "Banner not found",
-            });
+            return res.status(404).json({ message: 'Banner not found' });
         }
-        return res.status(200).send({
-            success: true,
-            message: "User fetched successfully",
-            banner
-        });
+
+        const user = await UserModel.findById(banner.userId, 'name email profilePic address ratings');
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        return res.status(200).json({ user });
     } catch (error) {
-        console.log(error);
-        return res.status(500).send({
-            success: false,
-            message: "An error occurred while fetching the user",
-            error: error.message,
-        });
+        console.error("Error fetching user data by bannerId:", error);
+        return res.status(500).json({ message: 'Internal server error' });
     }
 };
+
 const updateBanner = async(req,res) => {
     try {
         const {bannerId} = req.body
@@ -125,7 +153,9 @@ const deleteBanner = async(req,res) => {
 }
 const getAllBanners = async (req, res) => {
     try {
-        const banners = await Banner.find();
+        // const banners = await Banner.find();
+        const banners = await Banner.find().populate('userId', 'name email'); // Select only required fields like name and email
+
         return res.status(200).send({
             success: true,
             message: "Banners fetched successfully",
