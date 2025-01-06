@@ -198,7 +198,7 @@ const registerUserweb = async (req, res) => {
       businessAddress,
       fcmToken,
       referralCode: newReferralCode,
-      referredBy: referrer ? referrer._id : null,
+      referredBy: referrer ? referrer._id : [],
     });
 
     // Check for JWT_SECRET
