@@ -503,7 +503,7 @@ const registerUserweb = async (req, res) => {
 
     // Save the user to the database
     await user.save();
-    
+
     if (referrer) {
       await updateReferralChain(referrer._id, user._id);
     }
@@ -550,11 +550,16 @@ const updateReferralChain = async (referrerId, newUserId) => {
   // Find the referrer
   const referrer = await UserModel.findById(referrerId);
 
-  if (referrer) {
-    // Add the new user to the referrer's referrals array
-    referrer.referrals.push(newUserId);
-    await referrer.save();
+  // if (referrer) {
+    // // Add the new user to the referrer's referrals array
+    // referrer.referrals.push(newUserId);
+    // await referrer.save();
 
+    if (referrer) {
+      if (!referrer.referrals.includes(newUserId)) {
+        referrer.referrals.push(newUserId);
+        await referrer.save();
+      }
     // Recursively update the chain for each referrer in the chain
     for (const parentReferrerId of referrer.referredBy) {
       await updateReferralChain(parentReferrerId, newUserId);
