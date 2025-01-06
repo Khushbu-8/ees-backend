@@ -126,11 +126,7 @@ const userSchema = new mongoose.Schema(
     },
     // New fields for referral system
     referralCode: { type: String, unique: true },
-    referredBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      default: null,
-    },
+    referredBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     referrals: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     earnings: { type: Number, default: 0 },
     earningsHistory: [
