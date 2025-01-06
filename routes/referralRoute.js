@@ -4,10 +4,12 @@ const {
   getReferrals,
   getEarnings,
   distributeRewards,
+  getReferredBy,
 } = require("../controllers/referralController");
 
 // Route to view a user's referrals
 router.get("/referrals/:id", getReferrals);
+router.get("/getReferredBy/:id", getReferredBy);
 
 // Route to view a user's earnings
 router.get("/earnings/:id", getEarnings);
