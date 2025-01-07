@@ -61,6 +61,7 @@ const userSchema = new mongoose.Schema(
     fcmToken: {
        type: String
      },
+     isAdminApproved: { type: Boolean, default: false },
      userstatus: {
       type: String,
       enum: ['available', 'unavailable'], // Allowed values

@@ -13,6 +13,7 @@ const {
   UpdateUser,
   updateRoleByEmail,
   setUserStatus,
+  approveUser,
 } = require("../controllers/authController");
 const multer = require("multer");
 const cloudinary = require("cloudinary").v2;
@@ -44,12 +45,15 @@ router.post("/registerUser", registerUser);
 router.post("/loginUser", loginUser);
 router.post("/registerUserweb", registerUserweb);
 router.post("/loginUserweb", loginUserweb);
+router.put("/approveUser", approveUser);
+
 router.post(
   "/updateProfile",
   verifyToken,
   upload.single("image"),
   updateProfile
 );
+
 router.delete("/deleteUser", deleteUser);
 router.put("/UpdateUser", UpdateUser);
 router.get("/getAdmin", isAdmin, getAdmin);

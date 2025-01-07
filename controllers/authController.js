@@ -494,6 +494,7 @@ const registerUserweb = async (req, res) => {
       fcmToken,
       referralCode: newReferralCode,
       referredBy: referrer ? referrer._id : [],
+      isAdminApproved: false,
     });
 
     // Check for JWT_SECRET
@@ -509,7 +510,7 @@ const registerUserweb = async (req, res) => {
       await updateReferralChain(referrer._id, user._id);
     }
     // Generate JWT token
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: user._id ,  isAdminApproved: false }, process.env.JWT_SECRET, {
       expiresIn: "24h",
     });
 
@@ -527,7 +528,7 @@ const registerUserweb = async (req, res) => {
     // Respond with success
     return res.status(200).send({
       success: true,
-      message: "User registered successfully",
+      message: "User registered successfully, awaiting admin approval",
       user: {
         id: user._id,
         name: user.name,
@@ -568,6 +569,36 @@ const updateReferralChain = async (referrerId, newUserId) => {
   }
 };
 
+
+const approveUser = async (req, res) => {
+  try {
+    const {userId} = req.body;
+    console.log(req.body);
+    
+
+    // Find the user by ID
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      return res.status(400).send({ success: false, message: "User not found" });
+    }
+
+    // Update the user's approval status
+    user.isAdminApproved = true;
+    await user.save();
+
+    return res.status(200).send({
+      success: true,
+      message: "User approved successfully",
+    });
+  } catch (error) {
+    return res.status(500).send({
+      success: false,
+      message: "Error approving user",
+      error: error.message,
+    });
+  }
+};
+
 const loginUserweb = async (req, res) => { 
   try {
     console.log(req.body);
@@ -589,6 +620,14 @@ const loginUserweb = async (req, res) => {
       });
     }
 
+     // Check if user is approved by admin
+     if (!user.isAdminApproved) {
+      return res.status(400).send({
+        success: false,
+        message: "Your account is pending admin approval",
+      });
+    }
+
     // Check password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
@@ -605,7 +644,7 @@ const loginUserweb = async (req, res) => {
     }
 
     // Generate token and set cookie
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: user._id , isAdminApproved: user.isAdminApproved }, process.env.JWT_SECRET, {
       expiresIn: "24h",
     });
 
@@ -630,6 +669,7 @@ const loginUserweb = async (req, res) => {
     });
   }
 };
+
 
 const getAdmin = async (req, res) => {
   try {
@@ -999,5 +1039,6 @@ module.exports = {
   deleteUser,
   UpdateUser,
   setUserStatus,
-  updateRoleByEmail
+  updateRoleByEmail,
+  approveUser
 };
