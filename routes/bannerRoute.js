@@ -43,4 +43,5 @@ router.post(
 router.delete("/deleteBanner", verifyToken, deleteBanner);
 router.get("/getBanners", verifyToken, getBanners);
 router.get("/getAllBanners", getAllBanners);
+
 module.exports = router;
