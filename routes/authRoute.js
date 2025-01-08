@@ -62,5 +62,5 @@ router.get("/getUser", verifyToken, getUser);
 router.get("/logout", logout);
 router.put("/updateRoleByEmail", updateRoleByEmail);
 router.put("/setUserStatus",verifyToken, setUserStatus);
-router.post("/send", sendNotification);
+// router.post("/send", sendNotification);
 module.exports = router;
