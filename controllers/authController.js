@@ -738,8 +738,8 @@ const logout = async (req, res) => {
     res.clearCookie("refreshToken", {
       httpOnly: true,
       secure: true, // Use true in production (HTTPS)
-      sameSite: "lax",
-      path: "/", // Match path when the cookie was set
+      sameSite: "None", // Match the sameSite attribute when the cookie was set
+      path: "/", // Ensure the path matches when the cookie was set
     });
 
     console.log("Logout successful");
