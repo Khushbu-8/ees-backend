@@ -99,6 +99,7 @@ const userSchema = new mongoose.Schema(
         },
       },
     ],
+
     ratings: [
       {
         user: {
@@ -152,6 +153,12 @@ const userSchema = new mongoose.Schema(
         createdAt: { type: Date, default: Date.now },
       },
     ],
+    notifications: [{
+      senderName: String,
+      title: String,
+      message: String,
+      timestamp: { type: Date, default: Date.now },
+    }],
   },
   { timestamps: true }
 );

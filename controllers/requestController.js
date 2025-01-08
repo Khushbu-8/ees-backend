@@ -1,6 +1,317 @@
 
 const User = require('../model/user'); // Update the path as needed
 const mongoose = require("mongoose");
+const { sendNotification } = require('./sendController');
+
+// const sentRequest = async (req, res) => {
+//   try {
+//     const { receiverId } = req.body;
+//     const senderId = req.user.id;
+
+//     if (!receiverId || !senderId) {
+//       return res.status(400).send({
+//         success: false,
+//         message: "Sender or receiver ID is missing.",
+//       });
+//     }
+
+//     if (senderId.toString() === receiverId) {
+//       return res.status(400).send({
+//         success: false,
+//         message: "You cannot send a request to yourself.",
+//       });
+//     }
+
+//     const sender = await User.findById(senderId);
+//     const receiver = await User.findById(receiverId);
+
+//     if (!sender || !receiver) {
+//       return res.status(404).send({
+//         success: false,
+//         message: "Sender or receiver not found.",
+//       });
+//     }
+
+//     await User.findByIdAndUpdate(senderId, {
+//       $addToSet: { sended_requests: { user: receiver, status: 'pending' } },
+//     });
+
+//     await User.findByIdAndUpdate(receiverId, {
+//       $addToSet: { received_requests: { user: sender, status: 'pending' } },
+//     });
+
+//     return res.status(200).send({
+//       success: true,
+//       message: "Request sent successfully.",
+//       sender, receiver
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     return res.status(500).send({
+//       success: false,
+//       message: "An error occurred during the request.",
+//       error: error.message,
+//     });
+//   }
+// };
+
+// const receivedRequest = async (req, res) => {
+//   try {
+//     const { senderId } = req.body;
+//     const receiverId = req.user.id;
+
+//     const senderObjectId = new mongoose.Types.ObjectId(senderId);
+//     const receiverObjectId = new mongoose.Types.ObjectId(receiverId);
+
+//     const sender = await User.findById(senderObjectId);
+//     const receiver = await User.findById(receiverObjectId);
+
+//     if (!sender || !receiver) {
+//       return res.status(404).send({
+//         success: false,
+//         message: "Sender or receiver not found.",
+//       });
+//     }
+
+//     // Update status in sender's `sended_requests` and set sender's userstatus to 'unavailable'
+//     const senderUpdateResult = await User.updateOne(
+//       { _id: senderObjectId, "sended_requests.user._id": receiverObjectId },
+//       {
+//         $set: {
+//           "sended_requests.$.status": "received",
+//           userstatus: "unavailable",  // Set sender's status to unavailable
+//         },
+//       }
+//     );
+
+//     if (senderUpdateResult.matchedCount === 0) {
+//       return res.status(400).send({
+//         success: false,
+//         message: "No matching request found in sender's sended_requests.",
+//       });
+//     }
+
+//     // Update status in receiver's `received_requests` and set receiver's userstatus to 'unavailable'
+//     const receiverUpdateResult = await User.updateOne(
+//       { _id: receiverObjectId, "received_requests.user._id": senderObjectId },
+//       {
+//         $set: {
+//           "received_requests.$.status": "received",
+//           userstatus: "unavailable",  // Set receiver's status to unavailable
+//         },
+//       }
+//     );
+
+//     if (receiverUpdateResult.matchedCount === 0) {
+//       return res.status(400).send({
+//         success: false,
+//         message: "No matching request found in receiver's received_requests.",
+//       });
+//     }
+
+//     return res.status(200).send({
+//       success: true,
+//       message: "Request status updated to 'received', and both sender and receiver's userstatus set to 'unavailable'.",
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     return res.status(500).send({
+//       success: false,
+//       message: "An error occurred while updating the request.",
+//       error: error.message,
+//     });
+//   }
+// };
+
+
+// const cancelRequest = async (req, res) => {
+//   try {
+//     const { senderId } = req.body; // ID of the sender
+//     const receiverId = req.user.id; // ID of the receiver (authenticated user)
+
+//     const senderObjectId = new mongoose.Types.ObjectId(senderId);
+//     const receiverObjectId = new mongoose.Types.ObjectId(receiverId);
+
+//     // Check if sender and receiver exist
+//     const [sender, receiver] = await Promise.all([
+//       User.findById(senderObjectId),
+//       User.findById(receiverObjectId),
+//     ]);
+
+//     if (!sender || !receiver) {
+//       return res.status(404).send({
+//         success: false,
+//         message: "Sender or receiver not found.",
+//       });
+//     }
+
+//     // Step 1: Update the status in sender's `sended_requests`
+//     const senderStatusUpdate = await User.updateOne(
+//       { _id: senderObjectId, "sended_requests.user._id": receiverObjectId },
+//       { $set: { "sended_requests.$.status": "canceled" } }
+//     );
+
+//     if (senderStatusUpdate.matchedCount === 0) {
+//       return res.status(400).send({
+//         success: false,
+//         message: "No matching request found in sender's sended_requests to update status.",
+//       });
+//     }
+
+//     // Step 1: Update the status in receiver's `received_requests`
+//     const receiverStatusUpdate = await User.updateOne(
+//       { _id: receiverObjectId, "received_requests.user._id": senderObjectId },
+//       { $set: { "received_requests.$.status": "canceled" } }
+//     );
+
+//     if (receiverStatusUpdate.matchedCount === 0) {
+//       return res.status(400).send({
+//         success: false,
+//         message: "No matching request found in receiver's received_requests to update status.",
+//       });
+//     }
+
+//     // Step 2: Remove the request from sender's `sended_requests`
+//     const senderRequestRemoval = await User.updateOne(
+//       { _id: senderObjectId },
+//       { $pull: { sended_requests: { "user._id": receiverObjectId } } }
+//     );
+
+//     if (senderRequestRemoval.modifiedCount === 0) {
+//       return res.status(400).send({
+//         success: false,
+//         message: "Failed to remove request from sender's sended_requests.",
+//       });
+//     }
+
+//     // Step 2: Remove the request from receiver's `received_requests`
+//     const receiverRequestRemoval = await User.updateOne(
+//       { _id: receiverObjectId },
+//       { $pull: { received_requests: { "user._id": senderObjectId } } }
+//     );
+
+//     if (receiverRequestRemoval.modifiedCount === 0) {
+//       return res.status(400).send({
+//         success: false,
+//         message: "Failed to remove request from receiver's received_requests.",
+//       });
+//     }
+
+//     // Successfully updated status and removed the request
+//     return res.status(200).send({
+//       success: true,
+//       message: "Request status updated to 'canceled' and removed successfully.",
+//     });
+//   } catch (error) {
+//     console.error("Error during request cancellation:", error);
+//     return res.status(500).send({
+//       success: false,
+//       message: "An error occurred during cancellation.",
+//       error: error.message,
+//     });
+//   }
+// };
+
+// const workDone = async (req, res) => {
+//   try {
+//     const { senderId } = req.body; // ID of the sender who initiated the request
+//     const receiverId = req.user.id; // Authenticated user's ID (receiver of the request)
+
+//     const senderObjectId = new mongoose.Types.ObjectId(senderId);
+//     const receiverObjectId = new mongoose.Types.ObjectId(receiverId);
+
+//     // Check if sender and receiver exist
+//     const [sender, receiver] = await Promise.all([
+//       User.findById(senderObjectId),
+//       User.findById(receiverObjectId),
+//     ]);
+
+//     if (!sender || !receiver) {
+//       return res.status(404).send({
+//         success: false,
+//         message: "Sender or receiver not found.",
+//       });
+//     }
+
+//     // Step 1: Update sender's `sended_requests` status to 'panding'
+//     const senderStatusUpdate = await User.updateOne(
+//       { _id: senderObjectId, "sended_requests.user._id": receiverObjectId },
+//       { $set: { "sended_requests.$.status": "panding" } }
+//     );
+
+//     if (senderStatusUpdate.matchedCount === 0) {
+//       return res.status(400).send({
+//         success: false,
+//         message: "No matching request found in sender's sended_requests to update status.",
+//       });
+//     }
+
+//     // Step 2: Update receiver's `received_requests` status to 'panding'
+//     const receiverStatusUpdate = await User.updateOne(
+//       { _id: receiverObjectId, "received_requests.user._id": senderObjectId },
+//       { $set: { "received_requests.$.status": "panding" } }
+//     );
+
+//     if (receiverStatusUpdate.matchedCount === 0) {
+//       return res.status(400).send({
+//         success: false,
+//         message: "No matching request found in receiver's received_requests to update status.",
+//       });
+//     }
+
+//     // Step 3: Set receiver's user status to 'available'
+//     const receiverStatusUpdateResult = await User.updateOne(
+//       { _id: receiverObjectId },
+//       { $set: { userstatus: "available" } }
+//     );
+
+//     if (receiverStatusUpdateResult.modifiedCount === 0) {
+//       return res.status(400).send({
+//         success: false,
+//         message: "Failed to update receiver's user status to 'available'.",
+//       });
+//     }
+
+//     // Step 4: Remove the request from sender's `sended_requests`
+//     const senderRequestRemoval = await User.updateOne(
+//       { _id: senderObjectId },
+//       { $pull: { sended_requests: { "user._id": receiverObjectId } } }
+//     );
+
+//     if (senderRequestRemoval.modifiedCount === 0) {
+//       return res.status(400).send({
+//         success: false,
+//         message: "Failed to remove request from sender's sended_requests.",
+//       });
+//     }
+
+//     // Step 5: Remove the request from receiver's `received_requests`
+//     const receiverRequestRemoval = await User.updateOne(
+//       { _id: receiverObjectId },
+//       { $pull: { received_requests: { "user._id": senderObjectId } } }
+//     );
+
+//     if (receiverRequestRemoval.modifiedCount === 0) {
+//       return res.status(400).send({
+//         success: false,
+//         message: "Failed to remove request from receiver's received_requests.",
+//       });
+//     }
+
+//     // Successfully updated the statuses and removed the requests
+//     return res.status(200).send({
+//       success: true,
+//       message: "Request status updated, requests removed, and user status set to 'available'.",
+//     });
+//   } catch (error) {
+//     console.error("Error during work done operation:", error);
+//     return res.status(500).send({
+//       success: false,
+//       message: "An error occurred during the work done operation.",
+//       error: error.message,
+//     });
+//   }
+// };
 
 const sentRequest = async (req, res) => {
   try {
@@ -38,6 +349,18 @@ const sentRequest = async (req, res) => {
     await User.findByIdAndUpdate(receiverId, {
       $addToSet: { received_requests: { user: sender, status: 'pending' } },
     });
+// console.log(receiver._id,"seder token");
+
+    const Notification = {
+      senderName: sender.name,
+      fcmToken: receiver.fcmToken,
+      title: 'New Request',
+      message: `${sender.name} has sent you a request.`,
+      receiverId: receiver._id, // Include the receiver's ID to store the notification
+    };
+// console.log(Notification,"notif" );
+
+   await sendNotification(Notification)
 
     return res.status(200).send({
       success: true,
@@ -53,128 +376,6 @@ const sentRequest = async (req, res) => {
     });
   }
 };
-// const receivedRequest = async (req, res) => {
-//   try {
-//     const { senderId } = req.body;
-//     const receiverId = req.user.id;
-
-//     console.log(receiverId);
-
-//     const senderObjectId = new mongoose.Types.ObjectId(senderId);
-//     const receiverObjectId = new mongoose.Types.ObjectId(receiverId);
-
-//     const sender = await User.findById(senderObjectId);
-//     const receiver = await User.findById(receiverObjectId);
-
-//     if (!sender || !receiver) {
-//       return res.status(404).send({
-//         success: false,
-//         message: "Sender or receiver not found.",
-//       });
-//     }
-
-//     console.log("Sender's sended_requests:", sender.sended_requests);
-
-//     // Update status in sender's `sended_requests`
-//     const senderUpdateResult = await User.updateOne(
-//       { _id: senderObjectId, "sended_requests.user._id": receiverObjectId },
-//       { $set: { "sended_requests.$.status": "received" } }
-//     );
-
-//     console.log("Sender Update Query Result:", senderUpdateResult);
-
-//     if (senderUpdateResult.matchedCount === 0) {
-//       return res.status(400).send({
-//         success: false,
-//         message: "No matching request found in sender's sended_requests.",
-//       });
-//     }
-
-//     const receiverUpdateResult = await User.updateOne(
-//       { _id: receiverObjectId, "received_requests.user._id": senderObjectId },
-//       { $set: { "received_requests.$.status": "received" } }
-//     );
-
-//     if (receiverUpdateResult.matchedCount === 0) {
-//       return res.status(400).send({
-//         success: false,
-//         message: "No matching request found in receiver's received_requests.",
-//       });
-//     }
-
-//     return res.status(200).send({
-//       success: true,
-//       message: "Request status updated to 'received'.",
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     return res.status(500).send({
-//       success: false,
-//       message: "An error occurred while updating the request.",
-//       error: error.message,
-//     });
-//   }
-// };
-// const cancelRequest = async (req, res) => {
-//   try {
-//     const { senderId } = req.body;
-//     const receiverId = req.user.id;
-
-//     const senderObjectId = new mongoose.Types.ObjectId(senderId);
-//     const receiverObjectId = new mongoose.Types.ObjectId(receiverId);
-
-//     // Check if sender and receiver exist
-//     const [sender, receiver] = await Promise.all([
-//       User.findById(senderObjectId),
-//       User.findById(receiverObjectId),
-//     ]);
-
-//     if (!sender || !receiver) {
-//       return res.status(404).send({
-//         success: false,
-//         message: "Sender or receiver not found.",
-//       });
-//     }
-
-//     // Update status in sender's `sended_requests`
-//     const senderUpdateResult = await User.updateOne(
-//       { _id: senderObjectId, "sended_requests.user._id": receiverObjectId },
-//       { $set: { "sended_requests.$.status": "canceled" } }
-//     );
-
-//     if (senderUpdateResult.matchedCount === 0) {
-//       return res.status(400).send({
-//         success: false,
-//         message: "No matching request found in sender's sended_requests.",
-//       });
-//     }
-
-//     // Update status in receiver's `received_requests`
-//     const receiverUpdateResult = await User.updateOne(
-//       { _id: receiverObjectId, "received_requests.user._id": senderObjectId },
-//       { $set: { "received_requests.$.status": "canceled" } }
-//     );
-
-//     if (receiverUpdateResult.matchedCount === 0) {
-//       return res.status(400).send({
-//         success: false,
-//         message: "No matching request found in receiver's received_requests.",
-//       });
-//     }
-
-//     return res.status(200).send({
-//       success: true,
-//       message: "Request canceled successfully.",
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     return res.status(500).send({
-//       success: false,
-//       message: "An error occurred during cancellation.",
-//       error: error.message,
-//     });
-//   }
-// };
 
 const receivedRequest = async (req, res) => {
   try {
@@ -194,13 +395,12 @@ const receivedRequest = async (req, res) => {
       });
     }
 
-    // Update status in sender's `sended_requests` and set sender's userstatus to 'unavailable'
     const senderUpdateResult = await User.updateOne(
       { _id: senderObjectId, "sended_requests.user._id": receiverObjectId },
       {
         $set: {
           "sended_requests.$.status": "received",
-          userstatus: "unavailable",  // Set sender's status to unavailable
+          userstatus: "unavailable",
         },
       }
     );
@@ -212,13 +412,12 @@ const receivedRequest = async (req, res) => {
       });
     }
 
-    // Update status in receiver's `received_requests` and set receiver's userstatus to 'unavailable'
     const receiverUpdateResult = await User.updateOne(
       { _id: receiverObjectId, "received_requests.user._id": senderObjectId },
       {
         $set: {
           "received_requests.$.status": "received",
-          userstatus: "unavailable",  // Set receiver's status to unavailable
+          userstatus: "unavailable",
         },
       }
     );
@@ -229,6 +428,26 @@ const receivedRequest = async (req, res) => {
         message: "No matching request found in receiver's received_requests.",
       });
     }
+
+    // // Send notification to the sender that their request was received
+    // await sendNotification({
+    //   senderName: receiver.name,
+    //   fcmToken: sender.fcmToken,
+    //   title: 'Request Received',
+    //   message: `${receiver.name} has received your request.`,
+    // });
+
+    
+    const Notification = {
+      senderName: receiver.name,
+      fcmToken: sender.fcmToken,
+      title: 'Request Received',
+      message: `${receiver.name} has received your request.`,
+      receiverId: sender._id, // Include the receiver's ID to store the notification
+    };
+// console.log(Notification,"notif" );
+
+   await sendNotification(Notification)
 
     return res.status(200).send({
       success: true,
@@ -244,16 +463,14 @@ const receivedRequest = async (req, res) => {
   }
 };
 
-
 const cancelRequest = async (req, res) => {
   try {
-    const { senderId } = req.body; // ID of the sender
-    const receiverId = req.user.id; // ID of the receiver (authenticated user)
+    const { senderId } = req.body;
+    const receiverId = req.user.id;
 
     const senderObjectId = new mongoose.Types.ObjectId(senderId);
     const receiverObjectId = new mongoose.Types.ObjectId(receiverId);
 
-    // Check if sender and receiver exist
     const [sender, receiver] = await Promise.all([
       User.findById(senderObjectId),
       User.findById(receiverObjectId),
@@ -266,7 +483,6 @@ const cancelRequest = async (req, res) => {
       });
     }
 
-    // Step 1: Update the status in sender's `sended_requests`
     const senderStatusUpdate = await User.updateOne(
       { _id: senderObjectId, "sended_requests.user._id": receiverObjectId },
       { $set: { "sended_requests.$.status": "canceled" } }
@@ -279,7 +495,6 @@ const cancelRequest = async (req, res) => {
       });
     }
 
-    // Step 1: Update the status in receiver's `received_requests`
     const receiverStatusUpdate = await User.updateOne(
       { _id: receiverObjectId, "received_requests.user._id": senderObjectId },
       { $set: { "received_requests.$.status": "canceled" } }
@@ -292,7 +507,6 @@ const cancelRequest = async (req, res) => {
       });
     }
 
-    // Step 2: Remove the request from sender's `sended_requests`
     const senderRequestRemoval = await User.updateOne(
       { _id: senderObjectId },
       { $pull: { sended_requests: { "user._id": receiverObjectId } } }
@@ -305,7 +519,6 @@ const cancelRequest = async (req, res) => {
       });
     }
 
-    // Step 2: Remove the request from receiver's `received_requests`
     const receiverRequestRemoval = await User.updateOne(
       { _id: receiverObjectId },
       { $pull: { received_requests: { "user._id": senderObjectId } } }
@@ -318,16 +531,154 @@ const cancelRequest = async (req, res) => {
       });
     }
 
-    // Successfully updated status and removed the request
+    // Send notification to both sender and receiver that the request is canceled
+  
+    // Send notification about the cancellation to both sender and receiver
+    await sendNotification({
+      senderName: sender.name,
+      fcmToken: receiver.fcmToken,
+      title: 'Request Canceled',
+      message: `${sender.name} has canceled the request.`,
+      receiverId: receiver._id,  // Include the receiver's ID for storing notifications in the receiver's profile
+    });
+
+    await sendNotification({
+      senderName: receiver.name,
+      fcmToken: sender.fcmToken,
+      title: 'Request Canceled',
+      message: `${receiver.name} has canceled the request.`,
+      receiverId: sender._id,  // Include the sender's ID for storing notifications in the sender's profile
+    });
+
     return res.status(200).send({
       success: true,
       message: "Request status updated to 'canceled' and removed successfully.",
     });
+
   } catch (error) {
     console.error("Error during request cancellation:", error);
     return res.status(500).send({
       success: false,
       message: "An error occurred during cancellation.",
+      error: error.message,
+    });
+  }
+};
+
+const workDone = async (req, res) => {
+  try {
+    const { senderId } = req.body;
+    const receiverId = req.user.id;
+
+    const senderObjectId = new mongoose.Types.ObjectId(senderId);
+    const receiverObjectId = new mongoose.Types.ObjectId(receiverId);
+
+    const [sender, receiver] = await Promise.all([
+      User.findById(senderObjectId),
+      User.findById(receiverObjectId),
+    ]);
+
+    if (!sender || !receiver) {
+      return res.status(404).send({
+        success: false,
+        message: "Sender or receiver not found.",
+      });
+    }
+
+    const senderStatusUpdate = await User.updateOne(
+      { _id: senderObjectId, "sended_requests.user._id": receiverObjectId },
+      { $set: { "sended_requests.$.status": "panding" } }
+    );
+
+    if (senderStatusUpdate.matchedCount === 0) {
+      return res.status(400).send({
+        success: false,
+        message: "No matching request found in sender's sended_requests to update status.",
+      });
+    }
+
+    const receiverStatusUpdate = await User.updateOne(
+      { _id: receiverObjectId, "received_requests.user._id": senderObjectId },
+      { $set: { "received_requests.$.status": "panding" } }
+    );
+
+    if (receiverStatusUpdate.matchedCount === 0) {
+      return res.status(400).send({
+        success: false,
+        message: "No matching request found in receiver's received_requests to update status.",
+      });
+    }
+
+    const receiverStatusUpdateResult = await User.updateOne(
+      { _id: receiverObjectId },
+      { $set: { userstatus: "available" } }
+    );
+
+    if (receiverStatusUpdateResult.modifiedCount === 0) {
+      return res.status(400).send({
+        success: false,
+        message: "Failed to update receiver's user status to 'available'.",
+      });
+    }
+
+    const senderRequestRemoval = await User.updateOne(
+      { _id: senderObjectId },
+      { $pull: { sended_requests: { "user._id": receiverObjectId } } }
+    );
+
+    if (senderRequestRemoval.modifiedCount === 0) {
+      return res.status(400).send({
+        success: false,
+        message: "Failed to remove request from sender's sended_requests.",
+      });
+    }
+
+    const receiverRequestRemoval = await User.updateOne(
+      { _id: receiverObjectId },
+      { $pull: { received_requests: { "user._id": senderObjectId } } }
+    );
+
+    if (receiverRequestRemoval.modifiedCount === 0) {
+      return res.status(400).send({
+        success: false,
+        message: "Failed to remove request from receiver's received_requests.",
+      });
+    }
+
+    // Send notification to both sender and receiver about the work being done
+    await sendNotification({
+      senderName: receiver.name,
+      fcmToken: sender.fcmToken,
+      title: 'Work Done',
+      message: `${receiver.name} has completed the work.`,
+    });
+
+    const Notification = {
+      senderName: sender.name,
+      fcmToken: receiver.fcmToken,
+      title: 'Work Done',
+      message: `${sender.name} has completed the work.`,
+      receiverId: sender._id,
+    };
+
+    // const Notification = {
+    //   senderName: receiver.name,
+    //   fcmToken: sender.fcmToken,
+    //   title: 'Request Received',
+    //   message: `${receiver.name} has received your request.`,
+    //   receiverId: sender._id, // Include the receiver's ID to store the notification
+    // };
+   await sendNotification(Notification)
+
+    return res.status(200).send({
+      success: true,
+      message: "Request status updated, requests removed, and user status set to 'available'.",
+    });
+  } catch (error) {
+    console.error("Error during work done operation:", error);
+    return res.status(500).send({
+      success: false,
+      message: "An error occurred during the work done operation.",
       error: error.message,
     });
   }
@@ -388,106 +739,6 @@ const getAllRequests = async (req, res) => {
     return res.status(500).send({
       success: false,
       message: "An error occurred while retrieving all requests.",
-      error: error.message,
-    });
-  }
-};
-const workDone = async (req, res) => {
-  try {
-    const { senderId } = req.body; // ID of the sender who initiated the request
-    const receiverId = req.user.id; // Authenticated user's ID (receiver of the request)
-
-    const senderObjectId = new mongoose.Types.ObjectId(senderId);
-    const receiverObjectId = new mongoose.Types.ObjectId(receiverId);
-
-    // Check if sender and receiver exist
-    const [sender, receiver] = await Promise.all([
-      User.findById(senderObjectId),
-      User.findById(receiverObjectId),
-    ]);
-
-    if (!sender || !receiver) {
-      return res.status(404).send({
-        success: false,
-        message: "Sender or receiver not found.",
-      });
-    }
-
-    // Step 1: Update sender's `sended_requests` status to 'panding'
-    const senderStatusUpdate = await User.updateOne(
-      { _id: senderObjectId, "sended_requests.user._id": receiverObjectId },
-      { $set: { "sended_requests.$.status": "panding" } }
-    );
-
-    if (senderStatusUpdate.matchedCount === 0) {
-      return res.status(400).send({
-        success: false,
-        message: "No matching request found in sender's sended_requests to update status.",
-      });
-    }
-
-    // Step 2: Update receiver's `received_requests` status to 'panding'
-    const receiverStatusUpdate = await User.updateOne(
-      { _id: receiverObjectId, "received_requests.user._id": senderObjectId },
-      { $set: { "received_requests.$.status": "panding" } }
-    );
-
-    if (receiverStatusUpdate.matchedCount === 0) {
-      return res.status(400).send({
-        success: false,
-        message: "No matching request found in receiver's received_requests to update status.",
-      });
-    }
-
-    // Step 3: Set receiver's user status to 'available'
-    const receiverStatusUpdateResult = await User.updateOne(
-      { _id: receiverObjectId },
-      { $set: { userstatus: "available" } }
-    );
-
-    if (receiverStatusUpdateResult.modifiedCount === 0) {
-      return res.status(400).send({
-        success: false,
-        message: "Failed to update receiver's user status to 'available'.",
-      });
-    }
-
-    // Step 4: Remove the request from sender's `sended_requests`
-    const senderRequestRemoval = await User.updateOne(
-      { _id: senderObjectId },
-      { $pull: { sended_requests: { "user._id": receiverObjectId } } }
-    );
-
-    if (senderRequestRemoval.modifiedCount === 0) {
-      return res.status(400).send({
-        success: false,
-        message: "Failed to remove request from sender's sended_requests.",
-      });
-    }
-
-    // Step 5: Remove the request from receiver's `received_requests`
-    const receiverRequestRemoval = await User.updateOne(
-      { _id: receiverObjectId },
-      { $pull: { received_requests: { "user._id": senderObjectId } } }
-    );
-
-    if (receiverRequestRemoval.modifiedCount === 0) {
-      return res.status(400).send({
-        success: false,
-        message: "Failed to remove request from receiver's received_requests.",
-      });
-    }
-
-    // Successfully updated the statuses and removed the requests
-    return res.status(200).send({
-      success: true,
-      message: "Request status updated, requests removed, and user status set to 'available'.",
-    });
-  } catch (error) {
-    console.error("Error during work done operation:", error);
-    return res.status(500).send({
-      success: false,
-      message: "An error occurred during the work done operation.",
       error: error.message,
     });
   }

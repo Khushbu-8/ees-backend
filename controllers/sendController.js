@@ -1,17 +1,15 @@
 const admin = require("../config/firebase");
+const User = require('../model/user'); // Update the path as needed
+
 // Endpoint to send notifications
-const sendNotification = async (req, res) => {
-  const { senderName, fcmToken, title, message } = req.body;
-  // console.log(req.body, "send req");
-  
-  // if (!fcmToken || !title || !message || !senderName) {
-  //   return res.status(400).json({ error: "Missing required fields." });
-  // }
-  if (!fcmToken || !title || !message || !senderName) {
-    return res.status(400).json({ error: "Missing required fields." });
+const sendNotification = async ({senderName, fcmToken, title, message , receiverId}) => {
+ 
+  if (!fcmToken || !title || !message || !senderName || !receiverId) {
+    console.log("Error: Missing required parameters");
+    return { success: false, error: "Missing required fields." };
   }
-  console.log(req.body, "send req");
-  
+  // console.log(senderName ,"notificationsss");
+  try {
   const notificationPayload = {
     notification: {
       title: `${senderName} says: ${title}`,
@@ -20,13 +18,29 @@ const sendNotification = async (req, res) => {
     token: fcmToken,
   };
 
-  try {
+  // console.log(notificationPayload ,"notificationPayload");
+  
     // Send the notification using FCM
     const response = await admin.messaging().send(notificationPayload);
-    return res.status(200).json({ success: true, response });
+     // Find the receiver user and store the notification in their profile
+     const receiver = await User.findById(receiverId);
+     if (!receiver) {
+       return { success: false, error: "Receiver not found." };
+     }
+ 
+     // Store notification in the receiver's notifications array
+     receiver.notifications.push({
+       senderName,
+       title,
+       message,
+     });
+     await receiver.save();
+ 
+     return { success: true, response };
+
   } catch (error) {
     console.error("Error sending notification:", error);
-    return res.status(500).json({ error: "Failed to send notification." });
+    // return res.status(500).json({ error: "Failed to send notification." });
   }
 };
 
