@@ -51,7 +51,7 @@ const sendNotification = async ({ senderName, fcmToken, title, message, receiver
 const getNotifications = async (req, res) => {
   try {
     const userId = req.user.id; // Assume authentication middleware sets `req.user`
-console.log(userId ,"userId");
+// console.log(userId ,"userId");
 
     const user = await User.findById(userId);
 
