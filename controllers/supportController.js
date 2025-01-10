@@ -1,5 +1,6 @@
 const Support = require('../model/support');
 const UserModel = require('../model/user'); // Adjust path based on your project structure
+const { sendNotification } = require('./sendController');
 
 // Controller function to add a new issue
 const addIssue = async (req, res) => {
@@ -14,7 +15,7 @@ const addIssue = async (req, res) => {
          // Check if the user already has an active ticket
         const activeTicket = await Support.findOne({
             userId,
-            status: { $in: ['Pending', 'In Progress', 'Resolved'] }
+            status: { $in: ['Pending', 'In Progress'] }
         });
 
         if (activeTicket) {
@@ -50,7 +51,7 @@ const getActiveTicket = async (req, res) => {
     try {
         const activeTicket = await Support.findOne({
             userId,
-            status: { $in: ['Pending', 'In Progress', 'Resolved'] }
+            status: { $in: ['Pending', 'In Progress'] }
         });
 
         if (!activeTicket) {
@@ -84,7 +85,7 @@ const updateTicketStatus = async (req, res) => {
     }
 
     try {
-        const ticket = await Support.findById(id);
+        const ticket = await Support.findById(id).populate('userId', 'name fcmToken'); // Populate user info
 
         if (!ticket) {
             return res.status(404).json({ message: 'Ticket not found' });
@@ -93,8 +94,21 @@ const updateTicketStatus = async (req, res) => {
         // Update status and resolution message
         ticket.status = status;
         ticket.resolutionMessage = resolutionMessage || '';
-
         await ticket.save();
+
+        // Send notification to the user
+        const user = ticket.userId;
+        const notificationResult = await sendNotification({
+            senderName: 'Support Team',
+            fcmToken: user.fcmToken,
+            title: `Your ticket has been ${status}`,
+            message: resolutionMessage || 'Please check your ticket for more details.',
+            receiverId: user._id,
+        });
+
+        if (!notificationResult.success) {
+            console.error('Failed to send notification:', notificationResult.error);
+        }
 
         res.status(200).json({
             message: 'Ticket status updated successfully',
