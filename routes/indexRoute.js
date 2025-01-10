@@ -10,5 +10,6 @@ routes.use("/banner", require("./bannerRoute"));
 routes.use("/user", require("./ratingRoute"));
 routes.use("/api", require("./referralRoute"));
 routes.use("/payment", require("./paymentRoute"));
+routes.use("/support", require("./supportRoute"));
 
 module.exports = routes;
