@@ -76,8 +76,42 @@ const getNotifications = async (req, res) => {
     });
   }
 };
+const deleteNotification = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { notificationId } = req.body; // Get the notification ID from the route parameters
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    // Remove the notification from the user's notifications array
+    user.notifications = user.notifications.filter(
+      (notification) => notification._id.toString() !== notificationId
+    );
+
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Notification deleted successfully.",
+    });
+  } catch (error) {
+    console.error("Error deleting notification:", error);
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred while deleting the notification.",
+      error: error.message,
+    });
+  }
+};
 
 
 module.exports = {
-  sendNotification,getNotifications
+  sendNotification,getNotifications,deleteNotification,
 };
