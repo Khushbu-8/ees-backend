@@ -1,7 +1,7 @@
 const UserModel = require("../model/user"); // Adjust path based on your project structure
 const { distributeReferralRewards } = require("../services/referralService"); // If you create a referral service later
 
-// View a user's referrals
+// View a user's referrals (including multiple levels)
 const getReferrals = async (req, res) => {
   try {
     const userId = req.params.id;
@@ -13,8 +13,12 @@ const getReferrals = async (req, res) => {
         path: "referrals",
         select: "name phone email",
         populate: {
-          path: "referrals", // Populate referrals of the referrals
+          path: "referrals", // Populate referrals of the referrals (second level)
           select: "name phone email",
+          populate: {
+            path: "referrals", // Populate referrals of the second-level referrals (third level)
+            select: "name phone email",
+          },
         },
       });
 
@@ -32,7 +36,7 @@ const getReferrals = async (req, res) => {
         path: "referrals",
         select: "name phone email",
         populate: {
-          path: "referrals", // Populate referrals of the referred users
+          path: "referrals", // Populate referrals of the referred users (second level)
           select: "name phone email",
         },
       });
@@ -58,7 +62,7 @@ const getReferrals = async (req, res) => {
   }
 };
 
-
+// View who referred the user
 const getReferredBy = async (req, res) => {
   try {
     const userId = req.params.id;
@@ -84,7 +88,7 @@ const getReferredBy = async (req, res) => {
   }
 };
 
-// View a user's earnings
+// View a user's earnings (including referral earnings)
 const getEarnings = async (req, res) => {
   try {
     const userId = req.params.id;
@@ -99,7 +103,7 @@ const getEarnings = async (req, res) => {
     return res.status(200).send({
       success: true,
       earnings: user.earnings,
-      earningsHistory: user.earningsHistory,
+      earningsHistory: user.earningsHistory, // Including the history of referral earnings
     });
   } catch (error) {
     console.error(error);
@@ -110,33 +114,6 @@ const getEarnings = async (req, res) => {
     });
   }
 };
-
-// // Manually trigger rewards distribution after a payment
-// const distributeRewards = async (req, res) => {
-//   try {
-//     const { userId, paymentAmount } = req.body;
-
-//     // Validate input
-//     if (!userId || !paymentAmount) {
-//       return res.status(400).send({ success: false, message: "Invalid data" });
-//     }
-
-//     // Distribute rewards
-//     await distributeReferralRewards(userId, paymentAmount);
-
-//     return res.status(200).send({
-//       success: true,
-//       message: "Payment processed and rewards distributed",
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     return res.status(500).send({
-//       success: false,
-//       message: "Error distributing rewards",
-//       error: error.message,
-//     });
-//   }
-// };
 
 // Manually trigger rewards distribution after a payment
 const distributeRewards = async (req, res) => {
@@ -164,6 +141,8 @@ const distributeRewards = async (req, res) => {
     });
   }
 };
+
+// Get the current wallet balance of a user, including earnings
 const getUserWalletBalance = async (req, res) => {
   try {
     const userId = req.params.id;
@@ -176,14 +155,13 @@ const getUserWalletBalance = async (req, res) => {
     return res.status(200).send({
       success: true,
       walletBalance: user.walletBalance,
-      earningsHistory: user.earningsHistory,
+      earningsHistory: user.earningsHistory, // Include the full earnings history
     });
   } catch (error) {
     console.error(error);
     return res.status(500).send({ success: false, message: "Error fetching wallet balance" });
   }
 };
-
 
 module.exports = {
   getReferrals,

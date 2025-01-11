@@ -131,19 +131,29 @@ const userSchema = new mongoose.Schema(
     referredBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     referrals: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     earnings: { type: Number, default: 0 }, // Tracks total earnings
-    walletBalance: { type: Number, default: 120 },
-
-
+    walletBalance: {
+      type: Number,
+      default: 0,
+    },
     earningsHistory: [
       {
-        amount: { type: Number, required: true },
+        amount: {
+          type: Number,
+          required: true,
+        },
         sourceUser: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "User",
           required: true,
         },
-        date: { type: Date, default: Date.now },
-        type: { type: String, required: true }, // "Referral" or "Payment"
+        date: {
+          type: Date,
+          default: Date.now,
+        },
+        type: {
+          type: String,
+          required: true,
+        },
       },
     ],
 
