@@ -7,14 +7,23 @@ const getPublicIdFromUrl = (url) => {
     const regex = /\/(?:v\d+\/)?([^\/]+)\/([^\/]+)\.[a-z]+$/;
     const match = url.match(regex);
     if (match) {
-      return `${match[1]}/${match[2]}`; // captures the folder and file name without versioning or extension
+        return `${match[1]}/${match[2]}`; // captures the folder and file name without versioning or extension
     }
     return null;
 };
-const addbanner = async (req, res) => { 
+
+const addbanner = async (req, res) => {
     try {
         const imageUrl = req.file.path; // Get the uploaded image URL from Cloudinary
         const userId = req.user.id; // Extract user ID from the request
+        // Check for an existing banner for the user
+        const existingBanner = await Banner.findOne({ userId });
+        if (existingBanner) {
+            return res.status(400).send({
+                success: false,
+                message: "A banner already exists. Please delete the current banner before adding a new one.",
+            });
+        }
 
         // Create and save a new Banner instance
         const newBanner = new Banner({ imageUrl, userId });
@@ -34,6 +43,7 @@ const addbanner = async (req, res) => {
         });
     }
 };
+
 const getBanners = async (req, res) => {
     // console.log('req.user:', req.user); // Log req.user for debugging
 
@@ -98,20 +108,20 @@ const getUserByBanner = async (req, res) => {
     }
 };
 
-const updateBanner = async(req,res) => {
+const updateBanner = async (req, res) => {
     try {
-        const {bannerId} = req.body
+        const { bannerId } = req.body
         const banner = await Banner.findById(bannerId)
         if (!banner) {
             return res.status(404).json({ success: false, message: "banner not found" });
         }
         let imageUrl = banner.imageUrl
-        if(req.file){
-            if(imageUrl){
+        if (req.file) {
+            if (imageUrl) {
                 const publicId = getPublicIdFromUrl(imageUrl)
-                if(publicId){
+                if (publicId) {
                     const result = await cloudinary.uploader.destroy(publicId)
-                }else{
+                } else {
                     console.log("Could not extract publicId from URL:", imageUrl);
                 }
             }
@@ -122,34 +132,34 @@ const updateBanner = async(req,res) => {
         res.status(200).json({ success: true, message: "banner updated successfully", banner });
     } catch (error) {
         console.error("Error in bannerupdate:", error);
-      res.status(500).json({ success: false, message: "Server error", error });
+        res.status(500).json({ success: false, message: "Server error", error });
     }
 }
-const deleteBanner = async(req,res) => {
+const deleteBanner = async (req, res) => {
     try {
-        const { bannerId } = req.body; 
+        const { bannerId } = req.body;
         console.log(req.body);
-        
+
         const banner = await Banner.findById(bannerId);
         if (!banner) {
-          return res.status(404).json({ success: false, message: "banner not found" });
+            return res.status(404).json({ success: false, message: "banner not found" });
         }
         if (banner.imageUrl) {
-          const publicId = getPublicIdFromUrl(banner.imageUrl); 
-          if (publicId) {
-            const result = await cloudinary.uploader.destroy(publicId);
-            console.log("Cloudinary deletion result:", result);
-          } else {
-            console.log("Could not extract publicId from image URL:", banner.imageUrl);
-          }
+            const publicId = getPublicIdFromUrl(banner.imageUrl);
+            if (publicId) {
+                const result = await cloudinary.uploader.destroy(publicId);
+                console.log("Cloudinary deletion result:", result);
+            } else {
+                console.log("Could not extract publicId from image URL:", banner.imageUrl);
+            }
         }
         await Banner.findByIdAndDelete(bannerId);
-    
+
         res.status(200).json({ success: true, message: "banner deleted successfully" });
-      } catch (error) {
+    } catch (error) {
         console.error("Error in deleteProduct:", error);
         res.status(500).json({ success: false, message: "Server error", error });
-      }
+    }
 }
 const getAllBanners = async (req, res) => {
     try {
@@ -171,5 +181,5 @@ const getAllBanners = async (req, res) => {
     }
 }
 module.exports = {
-    addbanner,getUserByBanner,updateBanner,deleteBanner,getAllBanners,getBanners
+    addbanner, getUserByBanner, updateBanner, deleteBanner, getAllBanners, getBanners
 }

@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
 const { v4: uuidv4 } = require("uuid");
+const { distributeReferralRewards } = require("../services/referralService");
 
 const registerUser = async (req, res) => {
   try {
@@ -109,152 +110,6 @@ const loginUser = async (req, res) => {
     });
   }
 };
-// const registerUserweb = async (req, res) => {
-//   try {
-//     const {
-//       name,
-//       email,
-//       password,
-//       confirmpassword,
-//       phone,
-//       address: { area, city, state, country, pincode }, // Destructure address fields
-//       businessCategory,
-//       businessName,
-//       businessAddress,
-//       fcmToken,
-//     } = req.body;
-//     console.log(req.body,"register web");
-    
-
-//     const referralCode = req.body.referralCode;
-//     // console.log(req.body,"reffrele");
-
-//     // Check for required fields
-//     if (
-//       !name ||
-//       !email ||
-//       !password ||
-//       !confirmpassword ||
-//       !phone ||
-//       !area ||
-//       !city ||
-//       !state ||
-//       !country ||
-//       !pincode
-//     ) {
-//       return res
-//         .status(400)
-//         .send({ success: false, message: "Please fill all the fields" });
-//     }
-
-//     // Validate password and confirm password
-//     if (password !== confirmpassword) {
-//       return res.status(400).send({
-//         success: false,
-//         message: "Password and Confirm Password don't match",
-//       });
-//     }
-
-//     // Check if email already exists
-//     const userExist = await UserModel.findOne({ email: email });
-//     if (userExist) {
-//       return res
-//         .status(400)
-//         .send({ success: false, message: "Email already exists" });
-//     }
-
-//     let referrer = null;
-//     if (referralCode) {
-//       referrer = await UserModel.findOne({ referralCode });
-//       if (!referrer) {
-//         return res.status(400).send({
-//           success: false,
-//           message: "Invalid referral code",
-//         });
-//       }
-//     }
-
-//     // Hash the password
-//     const salt = await bcrypt.genSalt(10);
-//     const hashedPassword = await bcrypt.hash(password, salt);
-
-//     // Generate a unique referral code for the new user
-//     const newReferralCode = uuidv4();
-
-//     // Create new user
-//     const user = new UserModel({
-//       name,
-//       email,
-//       password: hashedPassword,
-//       phone,
-//       address: {
-//         area,
-//         city,
-//         state,
-//         country,
-//         pincode,
-//       },
-//       businessCategory,
-//       businessName,
-//       businessAddress,
-//       fcmToken,
-//       referralCode: newReferralCode,
-//       referredBy: referrer ? referrer._id : null,
-//     });
-
-//     // Check for JWT_SECRET
-//     console.log("JWT_SECRET:", process.env.JWT_SECRET);
-//     if (!process.env.JWT_SECRET) {
-//       throw new Error("JWT_SECRET environment variable is not defined");
-//     }
-
-//     // Save the user to the database
-//     await user.save();
-
-//     // Add the new user to the referrer's referrals array
-//     if (referrer) {
-//       referrer.referrals.push(user._id);
-//       await referrer.save();
-//     }
-
-//     // Generate JWT token
-//     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-//       expiresIn: "24h",
-//     });
-
-//     // Set the token as a cookie
-//     res.cookie("token", token, {
-//       httpOnly: true,
-//       secure: true, // Set to 'true' in production
-//       sameSite: "None", // Adjust as necessary
-//       maxAge: 3600000, // 1 hour
-//     });
-
-//     const referralLink = `${process.env.API_URL}/auth/registerUserweb?referralCode=${newReferralCode}`;
-//     console.log(referralLink);
-    
-//     // Respond with success
-//     return res.status(200).send({
-//       success: true,
-//       message: "User registered successfully",
-//       user: {
-//         id: user._id,
-//         name: user.name,
-//         email: user.email,
-//         referralCode: newReferralCode,
-//         referralLink,
-//       },
-//       token,
-//     });
-//   } catch (error) {
-//     console.log(error);
-//     return res.status(500).send({
-//       success: false,
-//       message: "An error occurred during registration",
-//       error: error.message,
-//     });
-//   }
-// };
 
 // const registerUserweb = async (req, res) => {
 //   try {
@@ -347,6 +202,7 @@ const loginUser = async (req, res) => {
 //       fcmToken,
 //       referralCode: newReferralCode,
 //       referredBy: referrer ? referrer._id : [],
+//       isAdminApproved: false,
 //     });
 
 //     // Check for JWT_SECRET
@@ -358,14 +214,11 @@ const loginUser = async (req, res) => {
 //     // Save the user to the database
 //     await user.save();
 
-//     // Add the new user to the referrer's referrals array
 //     if (referrer) {
-//       referrer.referrals.push(user._id);
-//       await referrer.save();
+//       await updateReferralChain(referrer._id, user._id);
 //     }
-
 //     // Generate JWT token
-//     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+//     const token = jwt.sign({ id: user._id ,  isAdminApproved: false }, process.env.JWT_SECRET, {
 //       expiresIn: "24h",
 //     });
 
@@ -383,7 +236,7 @@ const loginUser = async (req, res) => {
 //     // Respond with success
 //     return res.status(200).send({
 //       success: true,
-//       message: "User registered successfully",
+//       message: "User registered successfully, awaiting admin approval",
 //       user: {
 //         id: user._id,
 //         name: user.name,
@@ -402,6 +255,22 @@ const loginUser = async (req, res) => {
 //     });
 //   }
 // };
+// // Function to update the referral chain
+// const updateReferralChain = async (referrerId, newUserId) => {
+//   // Find the referrer
+//   const referrer = await UserModel.findById(referrerId);
+//     if (referrer) {
+//       if (!referrer.referrals.includes(newUserId)) {
+//         referrer.referrals.push(newUserId);
+//         await referrer.save();
+//       }
+//     // Recursively update the chain for each referrer in the chain
+//     for (const parentReferrerId of referrer.referredBy) {
+//       await updateReferralChain(parentReferrerId, newUserId);
+//     }
+//   }
+// };
+
 
 const registerUserweb = async (req, res) => {
   try {
@@ -417,8 +286,7 @@ const registerUserweb = async (req, res) => {
       businessAddress,
       fcmToken,
     } = req.body;
-    console.log(req.body,"register web");
-    
+    console.log(req.body, "register web");
 
     const referralCode = req.body.referralCode;
     // console.log(req.body,"reffrele");
@@ -475,7 +343,7 @@ const registerUserweb = async (req, res) => {
     // Generate a unique referral code for the new user
     const newReferralCode = uuidv4();
 
-    // Create new user
+    // Create new user with default wallet balance of 20
     const user = new UserModel({
       name,
       email,
@@ -493,8 +361,9 @@ const registerUserweb = async (req, res) => {
       businessAddress,
       fcmToken,
       referralCode: newReferralCode,
-      referredBy: referrer ? referrer._id : [],
+      referredBy: referrer ? referrer._id : [], // Store referrer ID if available
       isAdminApproved: false,
+      walletBalance: 120, // Assign default wallet balance of 20
     });
 
     // Check for JWT_SECRET
@@ -506,11 +375,17 @@ const registerUserweb = async (req, res) => {
     // Save the user to the database
     await user.save();
 
+    // Update referral chain and distribute rewards if a referrer exists
     if (referrer) {
-      await updateReferralChain(referrer._id, user._id);
+      await updateReferralChain(referrer._id, user._id); // Update the referral chain
+
+      // Distribute ₹20 to the referrer and ₹20 to the new user
+      await distributeReferralRewards(referrer._id, 20); // Referrer gets ₹20
+      await distributeReferralRewards(user._id, 20); // New user gets ₹20 as a reward
     }
+    
     // Generate JWT token
-    const token = jwt.sign({ id: user._id ,  isAdminApproved: false }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: user._id, isAdminApproved: false }, process.env.JWT_SECRET, {
       expiresIn: "24h",
     });
 
@@ -522,9 +397,10 @@ const registerUserweb = async (req, res) => {
       maxAge: 3600000, // 1 hour
     });
 
+    // Generate referral link for the new user
     const referralLink = `${process.env.API_URL}/auth/registerUserweb?referralCode=${newReferralCode}`;
     console.log(referralLink);
-    
+
     // Respond with success
     return res.status(200).send({
       success: true,
@@ -547,28 +423,22 @@ const registerUserweb = async (req, res) => {
     });
   }
 };
+
 // Function to update the referral chain
 const updateReferralChain = async (referrerId, newUserId) => {
-  // Find the referrer
   const referrer = await UserModel.findById(referrerId);
-
-  // if (referrer) {
-    // // Add the new user to the referrer's referrals array
-    // referrer.referrals.push(newUserId);
-    // await referrer.save();
-
-    if (referrer) {
-      if (!referrer.referrals.includes(newUserId)) {
-        referrer.referrals.push(newUserId);
-        await referrer.save();
-      }
+  if (referrer) {
+    if (!referrer.referrals.includes(newUserId)) {
+      referrer.referrals.push(newUserId); // Add new user to the referrer's referrals list
+      await referrer.save();
+    }
+    
     // Recursively update the chain for each referrer in the chain
     for (const parentReferrerId of referrer.referredBy) {
-      await updateReferralChain(parentReferrerId, newUserId);
+      await updateReferralChain(parentReferrerId, newUserId); // Call recursively
     }
   }
 };
-
 
 const approveUser = async (req, res) => {
   try {

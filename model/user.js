@@ -130,7 +130,10 @@ const userSchema = new mongoose.Schema(
     referralCode: { type: String, unique: true },
     referredBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     referrals: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-    earnings: { type: Number, default: 0 },
+    earnings: { type: Number, default: 0 }, // Tracks total earnings
+    walletBalance: { type: Number, default: 120 },
+
+
     earningsHistory: [
       {
         amount: { type: Number, required: true },
@@ -140,6 +143,7 @@ const userSchema = new mongoose.Schema(
           required: true,
         },
         date: { type: Date, default: Date.now },
+        type: { type: String, required: true }, // "Referral" or "Payment"
       },
     ],
 
