@@ -373,14 +373,20 @@ const registerUserweb = async (req, res) => {
           }
         }
       }
-
-      // Main referrer (4th level) gets ₹5
-      let mainReferrer = referrer;
-      while (mainReferrer.referredBy.length > 0) {
-        mainReferrer = await UserModel.findById(mainReferrer.referredBy[0]);
-      }
-      await distributeReferralRewards(mainReferrer._id, 5, user._id); // Main referrer gets ₹5
-    }
+            // 4th level referrer gets ₹5
+            if (referrer.referredBy.length > 0) {
+              const secondLevelReferrer = await UserModel.findById(referrer.referredBy[0]);
+              if (secondLevelReferrer && secondLevelReferrer.referredBy.length > 0) {
+                const thirdLevelReferrer = await UserModel.findById(secondLevelReferrer.referredBy[0]);
+                if (thirdLevelReferrer && thirdLevelReferrer.referredBy.length > 0) {
+                  const fourthLevelReferrer = await UserModel.findById(thirdLevelReferrer.referredBy[0]);
+                  if (fourthLevelReferrer) {
+                    await distributeReferralRewards(fourthLevelReferrer._id, 5, user._id); // 4th level referrer gets ₹5
+                  }
+                }
+              }
+            }
+          }
 
     // Generate JWT token
     const token = jwt.sign({ id: user._id, isAdminApproved: false }, process.env.JWT_SECRET, { expiresIn: "24h" });
