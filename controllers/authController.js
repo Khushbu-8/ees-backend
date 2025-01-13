@@ -354,40 +354,24 @@ const registerUserweb = async (req, res) => {
     if (referrer) {
       await distributeReferralRewards(referrer._id, 20, user._id); // Direct referrer gets ₹20
       await updateReferralChain(referrer._id, user._id); // Update the referral chain
-
-      // 2nd level referrer gets ₹15
-      if (referrer.referredBy.length > 0) {
-        const secondLevelReferrer = await UserModel.findById(referrer.referredBy[0]);
-        if (secondLevelReferrer) {
-          await distributeReferralRewards(secondLevelReferrer._id, 15, user._id); // 2nd level referrer gets ₹15
-        }
-      }
-
-      // 3rd level referrer gets ₹10
-      if (referrer.referredBy.length > 0) {
-        const secondLevelReferrer = await UserModel.findById(referrer.referredBy[0]);
-        if (secondLevelReferrer && secondLevelReferrer.referredBy.length > 0) {
-          const thirdLevelReferrer = await UserModel.findById(secondLevelReferrer.referredBy[0]);
-          if (thirdLevelReferrer) {
-            await distributeReferralRewards(thirdLevelReferrer._id, 10, user._id); // 3rd level referrer gets ₹10
-          }
-        }
-      }
-            // 4th level referrer gets ₹5
-            if (referrer.referredBy.length > 0) {
-              const secondLevelReferrer = await UserModel.findById(referrer.referredBy[0]);
-              if (secondLevelReferrer && secondLevelReferrer.referredBy.length > 0) {
-                const thirdLevelReferrer = await UserModel.findById(secondLevelReferrer.referredBy[0]);
-                if (thirdLevelReferrer && thirdLevelReferrer.referredBy.length > 0) {
-                  const fourthLevelReferrer = await UserModel.findById(thirdLevelReferrer.referredBy[0]);
-                  if (fourthLevelReferrer) {
-                    await distributeReferralRewards(fourthLevelReferrer._id, 5, user._id); // 4th level referrer gets ₹5
-                  }
-                }
+  
+      let currentReferrer = referrer;
+      let levels = [20, 15, 10, 10, 5]; // Rewards for 2nd to 5th level
+      for (let i = 0; i < levels.length; i++) {
+          if (currentReferrer.referredBy.length > 0) {
+              const nextReferrer = await UserModel.findById(currentReferrer.referredBy[0]);
+              if (nextReferrer) {
+                  await distributeReferralRewards(nextReferrer._id, levels[i], user._id);
+                  currentReferrer = nextReferrer;
+              } else {
+                  break; // Stop if there is no next level referrer
               }
-            }
+          } else {
+              break; // Stop if there are no more referrers in the chain
           }
-
+      }
+  }
+  
     // Generate JWT token
     const token = jwt.sign({ id: user._id, isAdminApproved: false }, process.env.JWT_SECRET, { expiresIn: "24h" });
 

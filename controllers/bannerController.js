@@ -96,7 +96,7 @@ const getUserByBanner = async (req, res) => {
             return res.status(404).json({ message: 'Banner not found' });
         }
 
-        const user = await UserModel.findById(banner.userId, 'name email profilePic address businessCategory ratings');
+        const user = await UserModel.findById(banner.userId, 'name email profilePic address businessCategory ratings userstatus');
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
@@ -164,7 +164,7 @@ const deleteBanner = async (req, res) => {
 const getAllBanners = async (req, res) => {
     try {
         // const banners = await Banner.find();
-        const banners = await Banner.find().populate('userId', 'name email businessCategory'); // Select only required fields like name and email
+        const banners = await Banner.find().populate('userId', 'name email userstatus address businessCategory'); // Select only required fields like name and email
 
         return res.status(200).send({
             success: true,
