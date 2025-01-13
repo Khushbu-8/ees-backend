@@ -356,7 +356,7 @@ const registerUserweb = async (req, res) => {
       await updateReferralChain(referrer._id, user._id); // Update the referral chain
   
       let currentReferrer = referrer;
-      let levels = [20, 15, 10, 10, 5]; // Rewards for 2nd to 5th level
+      let levels = [20, 15, 10, 5]; // Rewards for 2nd to 5th level
       for (let i = 0; i < levels.length; i++) {
           if (currentReferrer.referredBy.length > 0) {
               const nextReferrer = await UserModel.findById(currentReferrer.referredBy[0]);
