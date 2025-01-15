@@ -30,7 +30,7 @@ const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: "user",
-    allowed_formats: ["jpg", "png", "jpeg"],
+    allowed_formats: ["jpg", "png", "jpeg","webp"],
     transformation: [
       {
         crop: "fill",
@@ -43,7 +43,16 @@ const storage = new CloudinaryStorage({
 const upload = multer({ storage: storage });
 router.post("/registerUser", registerUser);
 router.post("/loginUser", loginUser);
-router.post("/registerUserweb", registerUserweb);
+router.post(
+  "/registerUserweb",
+  upload.fields([
+    { name: 'frontAadhar', maxCount: 1 },
+    { name: 'backAadhar', maxCount: 1 },
+    { name: 'profilePic', maxCount: 1 },
+  ]),
+  registerUserweb
+);
+// router.post("/registerUserweb",upload.single("image"), registerUserweb);
 router.post("/loginUserweb", loginUserweb);
 router.put("/approveUser", approveUser);
 

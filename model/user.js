@@ -15,9 +15,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    profilePic: {
-      type: String,
-    },
+    
     address: {
       area: {
         type: String,
@@ -58,6 +56,22 @@ const userSchema = new mongoose.Schema(
     businessAddress: {
       type: String,
     },
+    frontAadhar : {
+      type: String,
+        // required: true,
+        // trim: true, 
+    },
+    backAadhar : {
+      type: String,
+        // required: true,
+        // trim: true, 
+    },
+    profilePic: {
+      type: String,
+      // required: true,
+      // trim: true, 
+    },
+   
     fcmToken: {
        type: String
      },

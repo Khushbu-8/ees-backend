@@ -273,21 +273,62 @@ const loginUser = async (req, res) => {
 
 const registerUserweb = async (req, res) => {
   try {
+    // console.log('Received files:', JSON.stringify(req.files, null, 3));
+    // console.log("Receiveds files:",JSON.stringify(req.files.profilePic));
+
+    // Check if all required files are uploaded
+    if (
+      !req.files ||
+      !req.files.frontAadhar ||
+      !req.files.frontAadhar[0].path ||
+      !req.files.backAadhar ||
+      !req.files.backAadhar[0].path ||
+      !req.files.profilePic ||
+      !req.files.profilePic[0].path
+    ) {
+      return res.status(400).json({ message: "Please upload all required files." });
+    }
+    
+    // Get the URLs of the uploaded files from Cloudinary
+    const frontAadharUrl = req.files.frontAadhar[0].path;
+    const backAadharUrl = req.files.backAadhar[0].path;
+    const profilePicUrl = req.files.profilePic[0].path; // Ensure this is checked
+    
+    // console.log(frontAadharUrl, "frontAadharUrl");
+    // console.log(backAadharUrl, "backAadharUrl");
+    // console.log(profilePicUrl, "profilePicUrl");
+    
+    // You can now proceed with further processing, such as saving the URLs to the database
+    
     const {
       name,
       email,
       password,
       confirmpassword,
       phone,
-      address: { area, city, state, country, pincode },
+      address,
       businessCategory,
       businessName,
       businessAddress,
       fcmToken,
     } = req.body;
+     // Parse the address from JSON string to object
+     let parsedAddress = {};
+     if (address) {
+       parsedAddress = JSON.parse(address); // Convert string back to object
+     }
+    const { area, city, state, country, pincode } = parsedAddress;  // Destructure address
+
+    // Log or process the form data
+    console.log({
+      name, email, phone, password, confirmpassword, 
+      area, city, state, country, pincode, 
+      businessCategory, businessName, businessAddress, fcmToken
+    });
+// console.log(req.body,"all data");
 
     const referralCode = req.body.referralCode;
-
+    
     // Check for required fields
     if (
       !name ||
@@ -301,6 +342,7 @@ const registerUserweb = async (req, res) => {
       !country ||
       !pincode
     ) {
+      console.log("Please fill all the fields")
       return res.status(400).send({ success: false, message: "Please fill all the fields" });
     }
 
@@ -345,6 +387,9 @@ const registerUserweb = async (req, res) => {
       referredBy: referrer ? [referrer._id] : [],
       isAdminApproved: false,
       walletBalance: 0,
+      frontAadhar:frontAadharUrl,
+      backAadhar : backAadharUrl,
+      profilePic : profilePicUrl
     });
 
     // Save the user to the database
@@ -451,7 +496,7 @@ const approveUser = async (req, res) => {
 
 const loginUserweb = async (req, res) => { 
   try {
-    console.log(req.body);
+    console.log(req.body,"body");
 
     const { phone, password, fcmToken } = req.body; // Include fcmToken in the request body
     if (!phone || !password) {
