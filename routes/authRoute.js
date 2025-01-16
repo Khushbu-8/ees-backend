@@ -60,7 +60,7 @@ router.put("/approveUser", approveUser);
 router.post(
   "/updateProfile",
   verifyToken,
-  upload.single("image"),
+  upload.single("profilePic"),
   updateProfile
 );
 

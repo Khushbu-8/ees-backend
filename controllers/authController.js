@@ -681,8 +681,10 @@ const logout = async (req, res) => {
 const updateProfile = async (req, res) => {
   try {
     const userId = req.user.id; // Assumes you have middleware setting req.user
-   
-    
+    const profilePic = req.file ? req.file.path : null;
+
+    console.log(req.file, "Uploaded File:", req.body, "Request Body:", profilePic);
+
     // Extract fields from the request body
     const {
       name,
