@@ -56,6 +56,9 @@ const userSchema = new mongoose.Schema(
     businessAddress: {
       type: String,
     },
+    businessDetaile: {
+      type: String,
+    },
     frontAadhar : {
       type: String,
         // required: true,

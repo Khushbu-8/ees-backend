@@ -310,6 +310,7 @@ const registerUserweb = async (req, res) => {
       businessCategory,
       businessName,
       businessAddress,
+      businessDetaile,
       fcmToken,
     } = req.body;
      // Parse the address from JSON string to object
@@ -382,6 +383,7 @@ const registerUserweb = async (req, res) => {
       businessCategory,
       businessName,
       businessAddress,
+      businessDetaile,
       fcmToken,
       referralCode: newReferralCode,
       referredBy: referrer ? [referrer._id] : [],
@@ -679,10 +681,8 @@ const logout = async (req, res) => {
 const updateProfile = async (req, res) => {
   try {
     const userId = req.user.id; // Assumes you have middleware setting req.user
-    const profilePic = req.file ? req.file.path : null;
-
-    console.log(req.file, "Uploaded File:", req.body, "Request Body:", profilePic);
-
+   
+    
     // Extract fields from the request body
     const {
       name,
@@ -692,6 +692,7 @@ const updateProfile = async (req, res) => {
       businessCategory,
       businessName,
       businessAddress,
+      businessDetaile,
       fcmToken,
     } = req.body;
 
@@ -717,6 +718,7 @@ const updateProfile = async (req, res) => {
     if (businessCategory) updatedFields.businessCategory = businessCategory;
     if (businessName) updatedFields.businessName = businessName;
     if (businessAddress) updatedFields.businessAddress = businessAddress;
+    if (businessDetaile) updatedFields.businessDetaile = businessDetaile;
     if (fcmToken) updatedFields.fcmToken = fcmToken;
 
     // Update user data in the database
@@ -790,6 +792,8 @@ const UpdateUser = async (req, res) => {
       businessCategory,
       businessName,
       businessAddress,
+      businessDetaile,
+      
     } = req.body;
 
     // Validate input fields
@@ -800,7 +804,8 @@ const UpdateUser = async (req, res) => {
       !address &&
       !businessCategory &&
       !businessName &&
-      !businessAddress
+      !businessAddress &&
+      !businessDetaile
     ) {
       return res.status(400).json({
         success: false,
@@ -821,6 +826,7 @@ const UpdateUser = async (req, res) => {
     if (businessCategory) updatedFields.businessCategory = businessCategory;
     if (businessName) updatedFields.businessName = businessName;
     if (businessAddress) updatedFields.businessAddress = businessAddress;
+    if (businessDetaile) updatedFields.businessDetaile = businessDetaile;
 
     // Update user data in the database
     const updatedUser = await UserModel.findByIdAndUpdate(

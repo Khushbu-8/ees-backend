@@ -50,6 +50,7 @@ router.post(
     { name: 'backAadhar', maxCount: 1 },
     { name: 'profilePic', maxCount: 1 },
   ]),
+  
   registerUserweb
 );
 // router.post("/registerUserweb",upload.single("image"), registerUserweb);
