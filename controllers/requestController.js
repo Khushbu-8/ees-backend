@@ -434,6 +434,49 @@ const getAllRequests = async (req, res) => {
   }
 };
 
+const deleteRequest = async (req, res) => {
+  try {
+    const { requestId } = req.body;
+
+    if (!requestId) {
+      return res.status(400).send({
+        success: false,
+        message: "Request ID is required.",
+      });
+    }
+
+    const senderUpdateResult = await User.updateOne(
+      { "sended_requests._id": requestId },
+      { $pull: { sended_requests: { _id: requestId } } }
+    );
+
+    const receiverUpdateResult = await User.updateOne(
+      { "received_requests._id": requestId },
+      { $pull: { received_requests: { _id: requestId } } }
+    );
+
+    if (senderUpdateResult.modifiedCount === 0 && receiverUpdateResult.modifiedCount === 0) {
+      return res.status(404).send({
+        success: false,
+        message: "Request not found.",
+      });
+    }
+
+    return res.status(200).send({
+      success: true,
+      message: "Request deleted successfully.",
+    });
+  } catch (error) {
+    console.error("Error during request deletion:", error);
+    return res.status(500).send({
+      success: false,
+      message: "An error occurred while deleting the request.",
+      error: error.message,
+    });
+  }
+};
+
+
 
 
 
@@ -443,5 +486,6 @@ module.exports = {
   getAllRequests,
   receivedRequest,
   cancelRequest,
-  workDone, // Add workDone to the exported APIs
+  workDone,
+  deleteRequest
 };

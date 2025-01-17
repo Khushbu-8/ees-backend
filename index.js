@@ -14,7 +14,7 @@ const corsOptions = {
   origin: [
     // "https://ees121.com",
     // "https://www.ees121.com",
-    "https://ess-frontend-eight.vercel.app"
+    "https://ess-frontend-eight.vercel.app",
     // "http://localhost:5173",
   ], // Replace with the public IP of your frontend
   methods: ["GET", "POST", "PUT", "DELETE"], // Add methods as needed
