@@ -69,7 +69,7 @@ router.put("/UpdateUser", UpdateUser);
 router.get("/getAdmin", isAdmin, getAdmin);
 router.get("/getAllUser", getalluser);
 router.get("/getUser", verifyToken, getUser);
-router.get("/logout", logout);
+router.get("/logout",verifyToken, logout);
 router.put("/updateRoleByEmail", updateRoleByEmail);
 router.put("/setUserStatus",verifyToken, setUserStatus);
 // router.post("/send", sendNotification);

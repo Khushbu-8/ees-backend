@@ -629,20 +629,25 @@ const getUser = async (req, res) => {
 
 const logout = async (req, res) => {
   try {
-    res.setHeader('Set-Cookie', 'refreshToken=; HttpOnly; SameSite=None; Secure; Path=/; Max-Age=0; Domain=ees-backend.vercel.app');
-    // res.setHeader("Set-Cookie", "refreshToken=; HttpOnly; SameSite=None; Secure; Path=/; Max-Age=0");
+    // Clear the refreshToken cookie
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: true, // Use true in production (HTTPS)
+      sameSite: "None", // Match the sameSite attribute when the cookie was set
+      path: "/", // Ensure the path matches when the cookie was set
+    });
 
-    console.log('Logout successful');
+    console.log("Logout successful");
 
-    return res.status(200).json({
+    return res.status(200).send({
       success: true,
-      message: 'Logout successful',
+      message: "Logout successful",
     });
   } catch (error) {
-    console.error('Logout error:', error);
-    return res.status(500).json({
+    console.error("Logout error:", error);
+    return res.status(500).send({
       success: false,
-      message: 'An error occurred during logout',
+      message: "An error occurred during logout",
       error: error.message,
     });
   }
