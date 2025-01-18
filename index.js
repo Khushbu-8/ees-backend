@@ -10,15 +10,25 @@ const cookieParser = require("cookie-parser");
 
 // app.use(bodyParser.urlencoded({ extended: true }));
 const cors = require("cors");
+// const corsOptions = {
+//   origin: [
+//     // "https://ees121.com",
+//     // "https://www.ees121.com",
+//     "https://ess-frontend-eight.vercel.app",
+//     // "http://localhost:5173",
+//   ], // Replace with the public IP of your frontend
+//   methods: ["GET", "POST", "PUT", "DELETE"], // Add methods as needed
+//   credentials: true, // If your frontend sends cookies
+// };
+
 const corsOptions = {
   origin: [
-    // "https://ees121.com",
-    // "https://www.ees121.com",
     "https://ess-frontend-eight.vercel.app",
     // "http://localhost:5173",
-  ], // Replace with the public IP of your frontend
-  methods: ["GET", "POST", "PUT", "DELETE"], // Add methods as needed
-  credentials: true, // If your frontend sends cookies
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true,
+  allowedHeaders: ["Content-Type", "Authorization"], // Add other headers as needed
 };
 app.use(cors(corsOptions));
 app.use(express.json());

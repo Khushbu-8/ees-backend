@@ -630,6 +630,7 @@ const getUser = async (req, res) => {
 const logout = async (req, res) => {
   try {
     res.setHeader('Set-Cookie', 'refreshToken=; HttpOnly; SameSite=None; Secure; Path=/; Max-Age=0; Domain=ees-backend.vercel.app');
+    // res.setHeader("Set-Cookie", "refreshToken=; HttpOnly; SameSite=None; Secure; Path=/; Max-Age=0");
 
     console.log('Logout successful');
 
