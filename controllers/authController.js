@@ -630,12 +630,14 @@ const getUser = async (req, res) => {
 const logout = async (req, res) => {
   try {
     // Clear the refreshToken cookie
-    res.clearCookie("refreshToken", {
-      httpOnly: true,
-      secure: true, // Use true in production (HTTPS)
-      sameSite: "None", // Match the sameSite attribute when the cookie was set
-      path: "/", // Ensure the path matches when the cookie was set
-    });
+    // res.clearCookie("refreshToken", {
+    //   httpOnly: true,
+    //   secure: true, // Use true in production (HTTPS)
+    //   sameSite: "None", // Match the sameSite attribute when the cookie was set
+    //   path: "/", // Ensure the path matches when the cookie was set
+    // });
+    res.setHeader('Set-Cookie', 'refreshToken=; HttpOnly; SameSite=None; Secure; Path=/; Max-Age=0; Domain=ees-backend.vercel.app');
+
 
     console.log("Logout successful");
 
