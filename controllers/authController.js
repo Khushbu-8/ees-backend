@@ -361,9 +361,6 @@ const registerUserweb = async (req, res) => {
     let referrer = null;
     if (referralCode) {
       referrer = await UserModel.findOne({ referralCode });
-      if (!referrer) {
-        return res.status(400).send({ success: false, message: "Invalid referral code" });
-      }
     }
 
     // Hash the password
