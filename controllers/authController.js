@@ -1,4 +1,5 @@
 const UserModel = require("../model/user");
+const mongoose = require('mongoose')
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
@@ -273,9 +274,7 @@ const loginUser = async (req, res) => {
 
 const registerUserweb = async (req, res) => {
   try {
-    // console.log('Received files:', JSON.stringify(req.files, null, 3));
-    // console.log("Receiveds files:",JSON.stringify(req.files.profilePic));
-
+    
     // Check if all required files are uploaded
     if (
       !req.files ||
@@ -358,6 +357,26 @@ const registerUserweb = async (req, res) => {
       return res.status(400).send({ success: false, message: "Email already exists" });
     }
 
+    const counterDoc = await mongoose.connection.db.collection('counters').findOne({ _id: 'userId' });
+
+if (!counterDoc) {
+  // Initialize the counter if it doesn't exist
+  await mongoose.connection.db.collection('counters').insertOne({ _id: 'userId', seq: 1 });
+}
+
+const updatedCounterDoc = await mongoose.connection.db.collection('counters').findOneAndUpdate(
+  { _id: 'userId' },
+  { $inc: { seq: 1 } },
+  { returnDocument: 'after' }
+);
+
+if (!updatedCounterDoc) {
+  return res.status(500).send({ success: false, message: 'Failed to retrieve or increment counter' });
+}
+
+const uniqueId = updatedCounterDoc.seq.toString().padStart(3, '0');
+console.log('Generated User ID:', uniqueId);
+// refrals
     let referrer = null;
     if (referralCode) {
       referrer = await UserModel.findOne({ referralCode });
@@ -373,6 +392,7 @@ const registerUserweb = async (req, res) => {
 
     // Create new user with default wallet balance of 0
     const user = new UserModel({
+      userId : uniqueId,
       name,
       email,
       password: hashedPassword,
