@@ -352,9 +352,9 @@ const registerUserweb = async (req, res) => {
     }
 
     // Check if email already exists
-    const userExist = await UserModel.findOne({ email: email });
+    const userExist = await UserModel.findOne({ phone: phone });
     if (userExist) {
-      return res.status(400).send({ success: false, message: "Email already exists" });
+      return res.status(400).send({ success: false, message: "Number already exists" });
     }
 
     const counterDoc = await mongoose.connection.db.collection('counters').findOne({ _id: 'userId' });
