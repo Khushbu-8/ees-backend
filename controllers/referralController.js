@@ -89,6 +89,32 @@ const getReferredBy = async (req, res) => {
 };
 
 // View a user's earnings (including referral earnings)
+// const getEarnings = async (req, res) => {
+//   try {
+//     const userId = req.params.id;
+//     const user = await UserModel.findById(userId);
+
+//     if (!user) {
+//       return res
+//         .status(404)
+//         .send({ success: false, message: "User not found" });
+//     }
+
+//     return res.status(200).send({
+//       success: true,
+//       earnings: user.earnings,
+//       earningsHistory: user.earningsHistory, // Including the history of referral earnings
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     return res.status(500).send({
+//       success: false,
+//       message: "Error fetching earnings",
+//       error: error.message,
+//     });
+//   }
+// };
+
 const getEarnings = async (req, res) => {
   try {
     const userId = req.params.id;
@@ -100,10 +126,23 @@ const getEarnings = async (req, res) => {
         .send({ success: false, message: "User not found" });
     }
 
+    // Filter out earnings history entries with sourceUser IDs that no longer exist
+    const validEarningsHistory = [];
+    for (const entry of user.earningsHistory) {
+      const referrerExists = await UserModel.exists({ _id: entry.sourceUser });
+      if (referrerExists) {
+        validEarningsHistory.push(entry);
+      }
+    }
+
+    // Optionally, update the user's earningsHistory with only valid entries (if you want to save the cleaned data)
+    user.earningsHistory = validEarningsHistory;
+    await user.save();
+
     return res.status(200).send({
       success: true,
-      earnings: user.earnings,
-      earningsHistory: user.earningsHistory, // Including the history of referral earnings
+      earnings: user.walletBalance, // Assuming `walletBalance` represents earnings
+      earningsHistory: validEarningsHistory,
     });
   } catch (error) {
     console.error(error);
@@ -114,7 +153,6 @@ const getEarnings = async (req, res) => {
     });
   }
 };
-
 // Manually trigger rewards distribution after a payment
 const distributeRewards = async (req, res) => {
   try {

@@ -140,11 +140,33 @@ const getUserTickets = async (req, res) => {
         res.status(500).json({ message: 'Failed to fetch tickets', error: error.message });
     }
 };
+const deleteTicket = async (req, res) => {
+    const { id } = req.body; // Extract id from the request body
 
+    if (!id) {
+        return res.status(400).json({ message: 'Ticket ID is required' });
+    }
+
+    try {
+        const ticket = await Support.findByIdAndDelete(id);
+
+        if (!ticket) {
+            return res.status(404).json({ message: 'Ticket not found' });
+        }
+
+        res.status(200).json({ message: 'Ticket deleted successfully' });
+    } catch (error) {
+        res.status(500).json({
+            message: 'An error occurred while deleting the ticket',
+            error: error.message,
+        });
+    }
+};
 module.exports = {
     addIssue,
     getTickets,
     updateTicketStatus,
     getUserTickets,
-    getActiveTicket
+    getActiveTicket,
+    deleteTicket
 };
