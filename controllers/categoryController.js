@@ -76,10 +76,10 @@ const updateCategory = async(req,res) => {
 }
 const deleteCategory = async(req,res) => {
     try {
-        const { categorId } = req.body; 
+        const { categoryId } = req.body; 
         console.log(req.body);
         
-        const category = await Category.findById(categorId);
+        const category = await Category.findById(categoryId);
         if (!category) {
           return res.status(404).json({ success: false, message: "category not found" });
         }
@@ -92,7 +92,7 @@ const deleteCategory = async(req,res) => {
             console.log("Could not extract publicId from image URL:", category.image);
           }
         }
-        await Category.findByIdAndDelete(categorId);
+        await Category.findByIdAndDelete(categoryId);
     
         res.status(200).json({ success: true, message: "category deleted successfully" });
       } catch (error) {
