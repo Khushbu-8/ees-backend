@@ -19,6 +19,7 @@ const corsOptions = {
     "https://ees121.com",
     "https://www.ees121.com",
     "http://localhost:5173",
+    "https://ess-frontend-eight.vercel.app"
   ], // Replace with the public IP of your frontend
   methods: ["GET", "POST", "PUT", "DELETE"], // Add methods as needed
   credentials: true, // If your frontend sends cookies
