@@ -173,5 +173,32 @@ const getUserRating = async (req, res) => {
     res.status(500).json({ message: "Internal server error." });
   }
 };
+const getProviderRating = async (req, res) => {
+  const { userId } = req.params;
+  // console.log(userId,"id");
+  try {
+    // Fetch ratings for the user
+    const userRatings = await User.findById(userId);
+    // console.log(userRatings,"UserRating");
+    
+    if (!userRatings || userRatings.length === 0) {
+      return res.status(404).json({ success: false, message: 'No ratings found for this user.' });
+    }
 
-module.exports = { addRating, getUserRating, addRatingMobile };
+    res.status(200).json({
+      success: true,
+      message: 'Ratings fetched successfully.',
+      ratings: userRatings, // Assuming each rating document contains a `rating` field
+    });
+  } catch (error) {
+    console.error('Error fetching ratings:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching ratings.',
+      error: error.message,
+    });
+  }
+};
+
+
+module.exports = { addRating, getUserRating, addRatingMobile,getProviderRating };

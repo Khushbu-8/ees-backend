@@ -8,7 +8,7 @@ const { v4: uuidv4 } = require("uuid");
 const { distributeReferralRewards } = require("../services/referralService");
 
 const registerUser = async (req, res) => {
-  y;
+
   try {
     const {
       name,
@@ -1355,7 +1355,7 @@ const forgotPassword = async (req, res) => {
       user.resetCode = resetCode;
       user.resetCodeExpires = Date.now() + 10 * 60 * 1000; // Code valid for 10 minutes
       await user.save();
-      // console.log(user, "user1");
+      console.log(user, "user1");
       // Send reset code via email
       await sendEmail(
         email,

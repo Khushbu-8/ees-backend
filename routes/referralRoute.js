@@ -7,12 +7,14 @@ const {
   getReferredBy,
   getUserWalletBalance,
   getReferralsMobile,
+  getReffaredById,
 } = require("../controllers/referralController");
 
 // Route to view a user's referrals
 router.get("/getreferrals/:id", getReferrals);
 router.post("/getReferralsMobile", getReferralsMobile);
 router.get("/getReferredBy/:id", getReferredBy);
+router.get("/getReffaredById", getReffaredById);
 
 // Route to view a user's earnings
 router.get("/earnings/:id", getEarnings);

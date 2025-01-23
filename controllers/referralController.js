@@ -155,6 +155,34 @@ const distributeRewards = async (req, res) => {
     });
   }
 };
+// Get user by ID (for referredBy)
+const getReffaredById = async (req, res) => {
+
+  try {
+    const { id } = req.query;  // Get the user ID from query params
+    // console.log(id);
+    
+    if (!id) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
+    const user = await UserModel.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // You can return the relevant user details or the whole user object based on your need
+    res.json({
+      name: user.name,
+      email: user.email,
+      phone: user.phone,  // Add any other fields you want to return
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error fetching user', error: error.message });
+  }
+};
+
 
 // Get the current wallet balance of a user, including earnings
 const getUserWalletBalance = async (req, res) => {
@@ -250,6 +278,7 @@ module.exports = {
   getReferredBy,
   getEarnings,
   distributeRewards,
+  getReffaredById,
   getUserWalletBalance,
   getReferralsMobile,
 };
