@@ -71,7 +71,9 @@ const getReferredBy = async (req, res) => {
       .populate("referredBy", "name phone");
 
     if (!user) {
-      return res.status(404).send({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .send({ success: false, message: "User not found" });
     }
 
     return res.status(200).send({
@@ -87,33 +89,6 @@ const getReferredBy = async (req, res) => {
     });
   }
 };
-
-// View a user's earnings (including referral earnings)
-// const getEarnings = async (req, res) => {
-//   try {
-//     const userId = req.params.id;
-//     const user = await UserModel.findById(userId);
-
-//     if (!user) {
-//       return res
-//         .status(404)
-//         .send({ success: false, message: "User not found" });
-//     }
-
-//     return res.status(200).send({
-//       success: true,
-//       earnings: user.earnings,
-//       earningsHistory: user.earningsHistory, // Including the history of referral earnings
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     return res.status(500).send({
-//       success: false,
-//       message: "Error fetching earnings",
-//       error: error.message,
-//     });
-//   }
-// };
 
 const getEarnings = async (req, res) => {
   try {
@@ -153,6 +128,7 @@ const getEarnings = async (req, res) => {
     });
   }
 };
+
 // Manually trigger rewards distribution after a payment
 const distributeRewards = async (req, res) => {
   try {
@@ -187,7 +163,9 @@ const getUserWalletBalance = async (req, res) => {
     const user = await UserModel.findById(userId);
 
     if (!user) {
-      return res.status(404).send({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .send({ success: false, message: "User not found" });
     }
 
     return res.status(200).send({
@@ -197,7 +175,73 @@ const getUserWalletBalance = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).send({ success: false, message: "Error fetching wallet balance" });
+    return res
+      .status(500)
+      .send({ success: false, message: "Error fetching wallet balance" });
+  }
+};
+
+const getReferralsMobile = async (req, res) => {
+  try {
+    const { userId } = req.body; // Expecting userId from the request body
+
+    if (!userId) {
+      return res.status(400).send({ message: "User ID is required" });
+    }
+
+    // Find the user and populate their direct referrals
+    const user = await UserModel.findById(userId)
+      .select("name phone email referrals")
+      .populate({
+        path: "referrals",
+        select: "name phone email",
+        populate: {
+          path: "referrals", // Populate referrals of the referrals (second level)
+          select: "name phone email",
+          populate: {
+            path: "referrals", // Populate referrals of the second-level referrals (third level)
+            select: "name phone email",
+          },
+        },
+      });
+
+    if (!user) {
+      return res.status(404).send({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Find users who registered with this user's referral code
+    const referredUsers = await UserModel.find({ referredBy: userId })
+      .select("name phone email referrals")
+      .populate({
+        path: "referrals",
+        select: "name phone email",
+        populate: {
+          path: "referrals", // Populate referrals of the referred users (second level)
+          select: "name phone email",
+        },
+      });
+
+    return res.status(200).send({
+      success: true,
+      user: {
+        id: user._id,
+        name: user.name,
+        phone: user.phone,
+        email: user.email,
+        referrals: user.referrals, // Direct referrals of the user
+      },
+      referredUsers: referredUsers, // Users who registered using this user's referral and their referrals
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).send({
+      success: false,
+      message: "Error fetching referrals",
+      error: error.message,
+    });
   }
 };
 
@@ -206,5 +250,6 @@ module.exports = {
   getReferredBy,
   getEarnings,
   distributeRewards,
-  getUserWalletBalance
+  getUserWalletBalance,
+  getReferralsMobile,
 };

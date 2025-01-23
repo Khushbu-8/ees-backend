@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(
   {
-    userId: { type: String},
+    userId: { type: String },
     name: {
       type: String,
       required: true,
@@ -16,7 +16,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    
+
     address: {
       area: {
         type: String,
@@ -60,31 +60,31 @@ const userSchema = new mongoose.Schema(
     businessDetaile: {
       type: String,
     },
-    frontAadhar : {
+    frontAadhar: {
       type: String,
-        // required: true,
-        // trim: true, 
+      // required: true,
+      // trim: true,
     },
-    backAadhar : {
+    backAadhar: {
       type: String,
-        // required: true,
-        // trim: true, 
+      // required: true,
+      // trim: true,
     },
     profilePic: {
       type: String,
       // required: true,
-      // trim: true, 
+      // trim: true,
     },
-   
+
     fcmToken: {
-       type: String
-     },
-     isAdminApproved: { type: Boolean, default: false },
-     userstatus: {
       type: String,
-      enum: ['available', 'unavailable'], // Allowed values
-      default: 'available', // Default value
-    }, 
+    },
+    isAdminApproved: { type: Boolean, default: false },
+    userstatus: {
+      type: String,
+      enum: ["available", "unavailable"], // Allowed values
+      default: "available", // Default value
+    },
     sended_requests: [
       {
         user: {
@@ -185,12 +185,16 @@ const userSchema = new mongoose.Schema(
         createdAt: { type: Date, default: Date.now },
       },
     ],
-    notifications: [{
-      senderName: String,
-      title: String,
-      message: String,
-      timestamp: { type: Date, default: Date.now },
-    }],
+    notifications: [
+      {
+        senderName: String,
+        title: String,
+        message: String,
+        timestamp: { type: Date, default: Date.now },
+      },
+    ],
+    resetCode: { type: String }, // To store the reset code
+    resetCodeExpires: { type: Number },
   },
   { timestamps: true }
 );

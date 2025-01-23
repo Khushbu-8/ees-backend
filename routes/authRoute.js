@@ -14,6 +14,13 @@ const {
   updateRoleByEmail,
   setUserStatus,
   approveUser,
+  updateProfileMobile,
+  getUserMobile,
+  setUserStatusMobile,
+  getUsersByCategory,
+  forgotPassword,
+  verifyCode,
+  resetPassword,
 } = require("../controllers/authController");
 const multer = require("multer");
 const cloudinary = require("cloudinary").v2;
@@ -30,7 +37,7 @@ const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: "user",
-    allowed_formats: ["jpg", "png", "jpeg","webp"],
+    allowed_formats: ["jpg", "png", "jpeg", "webp"],
     transformation: [
       {
         crop: "fill",
@@ -46,11 +53,11 @@ router.post("/loginUser", loginUser);
 router.post(
   "/registerUserweb",
   upload.fields([
-    { name: 'frontAadhar', maxCount: 1 },
-    { name: 'backAadhar', maxCount: 1 },
-    { name: 'profilePic', maxCount: 1 },
+    { name: "frontAadhar", maxCount: 1 },
+    { name: "backAadhar", maxCount: 1 },
+    { name: "profilePic", maxCount: 1 },
   ]),
-  
+
   registerUserweb
 );
 // router.post("/registerUserweb",upload.single("image"), registerUserweb);
@@ -64,13 +71,22 @@ router.post(
   updateProfile
 );
 
+router.post("/updateProfileMobile", updateProfileMobile);
 router.delete("/deleteUser", deleteUser);
 router.put("/UpdateUser", UpdateUser);
 router.get("/getAdmin", isAdmin, getAdmin);
 router.get("/getAllUser", getalluser);
 router.get("/getUser", verifyToken, getUser);
+router.get("/getUserMobile", getUserMobile);
 router.get("/logout", logout);
+router.put("/setUserStatus", verifyToken, setUserStatus);
+router.put("/setUserStatusMobile", setUserStatusMobile);
 router.put("/updateRoleByEmail", updateRoleByEmail);
-router.put("/setUserStatus",verifyToken, setUserStatus);
-// router.post("/send", sendNotification);
+router.post("/getUsersByCategory", getUsersByCategory);
+
+// forgotpassword and reset password apis
+router.post("/forgot-password", forgotPassword);
+router.post("/verify-code", verifyCode);
+router.post("/reset-password", resetPassword);
+
 module.exports = router;

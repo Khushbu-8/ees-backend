@@ -10,6 +10,11 @@ const {
   deleteBanner,
   getAllBanners,
   getBanners,
+  addBannerMobile,
+  updateBannerMobile,
+  getUserByBannerMobile,
+  getUserBannerMobile,
+  deleteBannerMobile,
 } = require("../controllers/bannerController");
 const { verifyToken } = require("../middleware/auth");
 cloudinary.config({
@@ -21,7 +26,7 @@ const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: "banner",
-    allowed_formats: ["jpg", "png", "jpeg","webp"],
+    allowed_formats: ["jpg", "png", "jpeg", "webp"],
     transformation: [
       {
         crop: "fill",
@@ -33,6 +38,7 @@ const storage = new CloudinaryStorage({
 });
 const upload = multer({ storage: storage });
 router.post("/addBanner", verifyToken, upload.single("banner"), addbanner);
+router.post("/addBannerMobile", upload.single("banner"), addBannerMobile);
 router.get("/getUserByBanner/:bannerId", getUserByBanner);
 router.post(
   "/updateBanner",
@@ -40,8 +46,13 @@ router.post(
   upload.single("banner"),
   updateBanner
 );
+router.post("/updateBannerMobile", upload.single("banner"), updateBannerMobile);
 router.delete("/deleteBanner", verifyToken, deleteBanner);
+router.delete("/deleteBannerMobile", deleteBannerMobile);
 router.get("/getBanners", verifyToken, getBanners);
+router.post("/getUserBannerMobile", getUserBannerMobile);
+router.post("/getUserByBannerMobile", getUserByBannerMobile);
 router.get("/getAllBanners", getAllBanners);
+router.post("/getAllBannersMobile", getAllBanners);
 
 module.exports = router;
