@@ -62,6 +62,7 @@ const getReferrals = async (req, res) => {
   }
 };
 
+
 // View who referred the user
 const getReferredBy = async (req, res) => {
   try {

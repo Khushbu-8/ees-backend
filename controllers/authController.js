@@ -426,6 +426,7 @@ const registerUserweb = async (req, res) => {
       businessCategory,
       businessName,
       businessAddress,
+      businessDetaile,
       fcmToken,
     });
     // console.log(req.body,"all data");
