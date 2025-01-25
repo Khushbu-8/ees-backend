@@ -91,15 +91,14 @@ const getReferredBy = async (req, res) => {
   }
 };
 
+
 const getEarnings = async (req, res) => {
   try {
     const userId = req.params.id;
     const user = await UserModel.findById(userId);
 
     if (!user) {
-      return res
-        .status(404)
-        .send({ success: false, message: "User not found" });
+      return res.status(404).send({ success: false, message: "User not found" });
     }
 
     // Filter out earnings history entries with sourceUser IDs that no longer exist
@@ -107,7 +106,13 @@ const getEarnings = async (req, res) => {
     for (const entry of user.earningsHistory) {
       const referrerExists = await UserModel.exists({ _id: entry.sourceUser });
       if (referrerExists) {
-        validEarningsHistory.push(entry);
+        // Fetching sourceUser details (you can customize this as needed)
+        const referrer = await UserModel.findById(entry.sourceUser)
+          .select('name email phone referrals'); // Select only relevant fields
+        validEarningsHistory.push({
+          ...entry,
+          sourceUserDetails: referrer, // Attach source user details
+        });
       }
     }
 
