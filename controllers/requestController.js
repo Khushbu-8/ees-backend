@@ -73,11 +73,14 @@ const sentRequest = async (req, res) => {
 
     await sendNotification(Notification);
 
+    const updatedSender = await User.findById(senderId).populate('sended_requests.user');
+    const updatedReceiver = await User.findById(receiverId).populate('received_requests.user');
+
     return res.status(200).send({
       success: true,
       message: "Request sent successfully.",
-      sender,
-      receiver,
+      sender: updatedSender,
+      receiver: updatedReceiver,
     });
   } catch (error) {
     console.error(error);
@@ -737,8 +740,14 @@ const getUserRequests = async (req, res) => {
 
     // Find user by ID and populate requests
     const user = await User.findById(userId)
-      .populate("sended_requests") // Populate details of sent requests
-      .populate("received_requests"); // Populate details of received requests
+      .populate({
+        path: "sended_requests.user", // Populate user details in sent requests
+        select: "name email", // Select specific fields to return
+      })
+      .populate({
+        path: "received_requests.user", // Populate user details in received requests
+        select: "name email", // Select specific fields to return
+      });
 
     if (!user) {
       return res.status(404).send({
@@ -761,6 +770,7 @@ const getUserRequests = async (req, res) => {
     });
   }
 };
+
 
 const getUserRequestsMobile = async (req, res) => {
   try {

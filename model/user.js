@@ -144,6 +144,61 @@ const userSchema = new mongoose.Schema(
       type: Number, // Store the average rating for the user
       default: 0,
     },
+    userRatings: [
+      {
+        rater: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+          required: true,
+        },
+        rating: {
+          type: Number,
+          required: true,
+          min: 1,
+          max: 10,
+        },
+        comment: {
+          type: String,
+        },
+        date: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
+    userAverageRating: {
+      type: Number,
+      default: 0,
+    },
+
+    // Ratings received as a provider
+    providerRatings: [
+      {
+        rater: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+          required: true,
+        },
+        rating: {
+          type: Number,
+          required: true,
+          min: 1,
+          max: 10,
+        },
+        comment: {
+          type: String,
+        },
+        date: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
+    providerAverageRating: {
+      type: Number,
+      default: 0,
+    },
+
     // New fields for referral system
     referralCode: { type: String, unique: true },
     referredBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
