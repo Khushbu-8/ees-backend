@@ -139,42 +139,6 @@ const addRatingMobile = async (req, res) => {
   }
 };
 
-const getUserRating = async (req, res) => {
-  try {
-    const userId = req.user.id; // Assume authentication middleware sets `req.user`
-
-    // Validate input
-    if (!userId) {
-      return res.status(400).json({ message: "User ID is required." });
-    }
-
-    // Find the user
-    const user = await UserModel.findById(userId).select(
-      "name email ratings averageRating providerAverageRating providerRatings userRatings userAverageRating" );
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found." });
-    }
-
-    // Retrieve the user's rating (if it exists)
-    const userRating = user.ratings.find(
-      (rating) => rating.user.toString() === userId.toString()
-    );
-
-    // Calculate the average rating or set it to 0 if there are no ratings
-    const userAvgRating = user.averageRating || 0;
-
-    res.status(200).json({
-      message: "User rating retrieved successfully.",
-      rating: userRating || null, // Return `null` if no specific rating is found
-      average: userAvgRating,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Internal server error." });
-  }
-};
-
 // const getUserRating = async (req, res) => {
 //   try {
 //     const userId = req.user.id; // Assume authentication middleware sets `req.user`
@@ -184,39 +148,75 @@ const getUserRating = async (req, res) => {
 //       return res.status(400).json({ message: "User ID is required." });
 //     }
 
-//     // Find the user and select relevant fields
+//     // Find the user
 //     const user = await UserModel.findById(userId).select(
-//       "name email ratings averageRating providerAverageRating providerRatings userRatings userAverageRating"
-//     );
+//       "name email ratings averageRating providerAverageRating providerRatings userRatings userAverageRating" );
 
 //     if (!user) {
 //       return res.status(404).json({ message: "User not found." });
 //     }
 
-//     // Calculate average ratings for both roles (if applicable)
-//     const providerAvgRating = user.providerAverageRating || 0; // As a provider
-//     const userAvgRating = user.userAverageRating || 0; // As a regular user
+//     // Retrieve the user's rating (if it exists)
+//     const userRating = user.ratings.find(
+//       (rating) => rating.user.toString() === userId.toString()
+//     );
+
+//     // Calculate the average rating or set it to 0 if there are no ratings
+//     const userAvgRating = user.averageRating || 0;
 
 //     res.status(200).json({
-//       message: "User ratings retrieved successfully.",
-//       userDetails: {
-//         name: user.name,
-//         email: user.email,
-//       },
-//       ratings: {
-//         providerRatings: user.providerRatings || [], // List of ratings as a provider
-//         userRatings: user.userRatings || [], // List of ratings as a user
-//       },
-//       averages: {
-//         providerAverageRating: providerAvgRating,
-//         userAverageRating: userAvgRating,
-//       },
+//       message: "User rating retrieved successfully.",
+//       rating: userRating || null, // Return `null` if no specific rating is found
+//       average: userAvgRating,
 //     });
 //   } catch (error) {
-//     console.error("Error retrieving user ratings:", error);
+//     console.error(error);
 //     res.status(500).json({ message: "Internal server error." });
 //   }
 // };
+
+const getUserRating = async (req, res) => {
+  try {
+    const userId = req.user.id; // Assume authentication middleware sets `req.user`
+
+    // Validate input
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is required." });
+    }
+
+    // Find the user and select relevant fields
+    const user = await UserModel.findById(userId).select(
+      "name email ratings averageRating providerAverageRating providerRatings userRatings userAverageRating"
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    // Calculate average ratings for both roles (if applicable)
+    const providerAvgRating = user.providerAverageRating || 0; // As a provider
+    const userAvgRating = user.userAverageRating || 0; // As a regular user
+
+    res.status(200).json({
+      message: "User ratings retrieved successfully.",
+      userDetails: {
+        name: user.name,
+        email: user.email,
+      },
+      ratings: {
+        providerRatings: user.providerRatings || [], // List of ratings as a provider
+        userRatings: user.userRatings || [], // List of ratings as a user
+      },
+      averages: {
+        providerAverageRating: providerAvgRating,
+        userAverageRating: userAvgRating,
+      },
+    });
+  } catch (error) {
+    console.error("Error retrieving user ratings:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+};
 
 const getProviderRating = async (req, res) => {
   const { userId } = req.params;

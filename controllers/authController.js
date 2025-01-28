@@ -505,7 +505,7 @@ const registerUserweb = async (req, res) => {
     // refrals
     let referrer = null;
     if (referralCode) {
-      referrer = await UserModel.findOne({ referralCode });
+      referrer = await UserModel.findOne({ phone : referralCode });
     }
 
     // Hash the password

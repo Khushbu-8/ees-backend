@@ -135,6 +135,7 @@ const getEarnings = async (req, res) => {
   }
 };
 
+
 // Manually trigger rewards distribution after a payment
 const distributeRewards = async (req, res) => {
   try {
