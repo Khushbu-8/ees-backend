@@ -693,7 +693,8 @@ const workDone = async (req, res) => {
       { _id: senderObjectId, "sended_requests.user._id": receiverObjectId },
       {
         $set: {
-          "sended_requests.$.status": "done"
+          "sended_requests.$.status": "done",
+          
         },
       }
     );

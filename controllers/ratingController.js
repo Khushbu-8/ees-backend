@@ -481,6 +481,7 @@ const rateProvider = async (req, res) => {
     const { providerId, ratingValue, comment } = req.body;
     const senderId = req.user.id;
 
+    // Validate inputs
     if (!providerId || !ratingValue || ratingValue < 1 || ratingValue > 10) {
       return res.status(400).send({
         success: false,
@@ -524,14 +525,7 @@ const rateProvider = async (req, res) => {
       date: new Date(),
     };
 
-    // Update the rating in provider's received_requests
-    // provider.received_requests[providerRequestIndex].rating = {
-    //   value: ratingValue,
-    //   comment,
-    //   date: new Date(),
-    // };
-
-    // Add rating to provider's userRatings
+    // Add rating to provider's providerRatings
     provider.providerRatings.push({
       rater: sender._id,
       rating: ratingValue,
@@ -540,9 +534,9 @@ const rateProvider = async (req, res) => {
     });
 
     // Recalculate provider's userAverageRating
-    const totalUserRatings = provider.userRatings.length;
-    const sumUserRatings = provider.userRatings.reduce((acc, r) => acc + r.rating, 0);
-    provider.userAverageRating = sumUserRatings / totalUserRatings;
+    const totalUserRatings = provider.providerRatings.length; // Note: Fixed reference to `providerRatings`
+    const sumUserRatings = provider.providerRatings.reduce((acc, r) => acc + r.rating, 0);
+    provider.userAverageRating = totalUserRatings > 0 ? sumUserRatings / totalUserRatings : 0; // Avoid NaN
 
     // Save changes to both users
     await Promise.all([sender.save(), provider.save()]);
@@ -560,6 +554,7 @@ const rateProvider = async (req, res) => {
     });
   }
 };
+
 
 
 

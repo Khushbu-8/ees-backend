@@ -6,6 +6,7 @@ const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const { v4: uuidv4 } = require("uuid");
 const { distributeReferralRewards } = require("../services/referralService");
+const { sendNotification } = require("./sendController");
 
 const registerUser = async (req, res) => {
 
@@ -586,6 +587,18 @@ const registerUserweb = async (req, res) => {
     // Generate referral link for the new user
     const referralLink = `${process.env.API_URL}/auth/registerUserweb?referralCode=${newReferralCode}`;
 
+    if (referrer) {
+      const notification = {
+        senderName: user.name, // New user's name
+        fcmToken: referrer.fcmToken, // Referrer's FCM token
+        title: "New Referral",
+        message: `${user.name} has signed up using your referral link!`,
+        receiverId: referrer._id, // Referrer's ID for tracking
+      };
+
+      // Send the notification
+      await sendNotification(notification);
+    }
     // Respond with success
     return res.status(200).send({
       success: true,
