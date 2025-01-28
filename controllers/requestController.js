@@ -151,15 +151,15 @@ const sentRequestMobile = async (req, res) => {
       $addToSet: { received_requests: { user: sender, status: "pending" } },
     });
 
-    const Notification = {
-      senderName: sender.name,
-      fcmToken: receiver.fcmToken,
-      title: "New Request",
-      message: `${sender.name} has sent you a request.`,
-      receiverId: receiver._id, // Include the receiver's ID to store the notification
-    };
+    // const Notification = {
+    //   senderName: sender.name,
+    //   fcmToken: receiver.fcmToken,
+    //   title: "New Request",
+    //   message: `${sender.name} has sent you a request.`,
+    //   receiverId: receiver._id, // Include the receiver's ID to store the notification
+    // };
 
-    await sendNotification(Notification);
+    // await sendNotification(Notification);
 
     return res.status(200).send({
       success: true,
@@ -543,9 +543,134 @@ const cancelRequestMobile = async (req, res) => {
   }
 };
 
+// const workDone = async (req, res) => {
+//   try {
+//     const { senderId } = req.body;
+//     const receiverId = req.user.id;
+
+//     const senderObjectId = new mongoose.Types.ObjectId(senderId);
+//     const receiverObjectId = new mongoose.Types.ObjectId(receiverId);
+
+//     const [sender, receiver] = await Promise.all([
+//       User.findById(senderObjectId),
+//       User.findById(receiverObjectId),
+//     ]);
+
+//     if (!sender || !receiver) {
+//       return res.status(404).send({
+//         success: false,
+//         message: "Sender or receiver not found.",
+//       });
+//     }
+
+//     const senderStatusUpdate = await User.updateOne(
+//       { _id: senderObjectId, "sended_requests.user._id": receiverObjectId },
+//       { $set: { "sended_requests.$.status": "done" } }
+//     );
+
+//     if (senderStatusUpdate.matchedCount === 0) {
+//       return res.status(400).send({
+//         success: false,
+//         message:
+//           "No matching request found in sender's sended_requests to update status.",
+//       });
+//     }
+
+//     const receiverStatusUpdate = await User.updateOne(
+//       { _id: receiverObjectId, "received_requests.user._id": senderObjectId },
+//       { $set: { "received_requests.$.status": "done" } }
+//     );
+
+//     if (receiverStatusUpdate.matchedCount === 0) {
+//       return res.status(400).send({
+//         success: false,
+//         message:
+//           "No matching request found in receiver's received_requests to update status.",
+//       });
+//     }
+
+//     const receiverStatusUpdateResult = await User.updateOne(
+//       { _id: receiverObjectId },
+//       { $set: { userstatus: "available" } }
+//     );
+
+//     if (receiverStatusUpdateResult.modifiedCount === 0) {
+//       return res.status(400).send({
+//         success: false,
+//         message: "Failed to update receiver's user status to 'available'.",
+//       });
+//     }
+
+//     // Send notification to both sender and receiver about the work being done
+//     await sendNotification({
+//       senderName: receiver.name,
+//       fcmToken: sender.fcmToken,
+//       title: "Work Done",
+//       message: `${receiver.name} has completed the work.`,
+//     });
+
+//     const Notification = {
+//       senderName: sender.name,
+//       fcmToken: receiver.fcmToken,
+//       title: "Work Done",
+//       message: `${sender.name} has completed the work.`,
+//       receiverId: sender._id,
+//     };
+
+//     // const Notification = {
+//     //   senderName: receiver.name,
+//     //   fcmToken: sender.fcmToken,
+//     //   title: 'Request Received',
+//     //   message: `${receiver.name} has received your request.`,
+//     //   receiverId: sender._id, // Include the receiver's ID to store the notification
+//     // };
+//     await sendNotification(Notification);
+
+//     return res.status(200).send({
+//       success: true,
+//       message:
+//         "Request status updated, requests removed, and user status set to 'available'.",
+//     });
+//   } catch (error) {
+//     console.error("Error during work done operation:", error);
+//     return res.status(500).send({
+//       success: false,
+//       message: "An error occurred during the work done operation.",
+//       error: error.message,
+//     });
+//   }
+// };
+
+const updateUserAverageRating = async (userId, newRating) => {
+  const user = await User.findById(userId);
+
+  if (user) {
+    const allRatings = user.userRatings.map((r) => r.rating);
+    allRatings.push(newRating);
+
+    const average = allRatings.reduce((sum, rating) => sum + rating, 0) / allRatings.length;
+
+    await User.updateOne({ _id: userId }, { $set: { userAverageRating: average } });
+  }
+};
+
+
+const updateProviderAverageRating = async (userId, newRating) => {
+  const user = await User.findById(userId);
+
+  if (user) {
+    const allRatings = user.providerRatings.map((r) => r.rating);
+    allRatings.push(newRating);
+
+    const average = allRatings.reduce((sum, rating) => sum + rating, 0) / allRatings.length;
+
+    await User.updateOne({ _id: userId }, { $set: { providerAverageRating: average } });
+  }
+};
+
 const workDone = async (req, res) => {
   try {
-    const { senderId } = req.body;
+    const { senderId, rating, comment } = req.body; // Rating and comment from request body
     const receiverId = req.user.id;
 
     const senderObjectId = new mongoose.Types.ObjectId(senderId);
@@ -563,9 +688,14 @@ const workDone = async (req, res) => {
       });
     }
 
+    // Update sender's sended_requests: set status to 'done' and add rating
     const senderStatusUpdate = await User.updateOne(
       { _id: senderObjectId, "sended_requests.user._id": receiverObjectId },
-      { $set: { "sended_requests.$.status": "done" } }
+      {
+        $set: {
+          "sended_requests.$.status": "done"
+        },
+      }
     );
 
     if (senderStatusUpdate.matchedCount === 0) {
@@ -576,9 +706,19 @@ const workDone = async (req, res) => {
       });
     }
 
+    // Update receiver's received_requests: set status to 'done' and add rating
     const receiverStatusUpdate = await User.updateOne(
       { _id: receiverObjectId, "received_requests.user._id": senderObjectId },
-      { $set: { "received_requests.$.status": "done" } }
+      {
+        $set: {
+          "received_requests.$.status": "done",
+          "received_requests.$.userrating": {
+            value: rating,
+            comment: comment,
+            date: Date.now(),
+          },
+        },
+      }
     );
 
     if (receiverStatusUpdate.matchedCount === 0) {
@@ -589,6 +729,7 @@ const workDone = async (req, res) => {
       });
     }
 
+    // Update receiver's status to 'available'
     const receiverStatusUpdateResult = await User.updateOne(
       { _id: receiverObjectId },
       { $set: { userstatus: "available" } }
@@ -600,8 +741,24 @@ const workDone = async (req, res) => {
         message: "Failed to update receiver's user status to 'available'.",
       });
     }
+    // Update sender's status to 'available'
+    const senderStatusUpdateResult = await User.updateOne(
+      { _id: senderObjectId },
+      { $set: { userstatus: "available" } }
+    );
 
-    // Send notification to both sender and receiver about the work being done
+    if (senderStatusUpdateResult.modifiedCount === 0) {
+      return res.status(400).send({
+        success: false,
+        message: "Failed to update receiver's user status to 'available'.",
+      });
+    }
+
+    // Calculate and update averages
+    await updateUserAverageRating(receiverId, rating); // Update receiver's userAverageRating
+    await updateProviderAverageRating(senderId, rating); // Update sender's providerAverageRating
+
+    // Notify both users about the work being done
     await sendNotification({
       senderName: receiver.name,
       fcmToken: sender.fcmToken,
@@ -609,33 +766,23 @@ const workDone = async (req, res) => {
       message: `${receiver.name} has completed the work.`,
     });
 
-    const Notification = {
+    await sendNotification({
       senderName: sender.name,
       fcmToken: receiver.fcmToken,
       title: "Work Done",
       message: `${sender.name} has completed the work.`,
-      receiverId: sender._id,
-    };
-
-    // const Notification = {
-    //   senderName: receiver.name,
-    //   fcmToken: sender.fcmToken,
-    //   title: 'Request Received',
-    //   message: `${receiver.name} has received your request.`,
-    //   receiverId: sender._id, // Include the receiver's ID to store the notification
-    // };
-    await sendNotification(Notification);
+    });
 
     return res.status(200).send({
       success: true,
       message:
-        "Request status updated, requests removed, and user status set to 'available'.",
+        "Work marked as done, rating submitted, and averages updated successfully.",
     });
   } catch (error) {
-    console.error("Error during work done operation:", error);
+    console.error("Error during workDone operation:", error);
     return res.status(500).send({
       success: false,
-      message: "An error occurred during the work done operation.",
+      message: "An error occurred during the workDone operation.",
       error: error.message,
     });
   }

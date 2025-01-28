@@ -85,35 +85,68 @@ const userSchema = new mongoose.Schema(
       enum: ["available", "unavailable"], // Allowed values
       default: "available", // Default value
     },
+    // sended_requests: [
+    //   {
+    //     user: {
+    //       type: Object, // Store the entire user document
+    //       required: true,
+    //     },
+    //     status: {
+    //       type: String,
+    //       default: "pending",
+    //     },
+    //     date: {
+    //       type: Date,
+    //       default: Date.now,
+    //     },
+    //   },
+    // ],
+    // received_requests: [
+    //   {
+    //     user: {
+    //       type: Object, // Store the entire user document
+    //       required: true,
+    //     },
+    //     status: {
+    //       type: String,
+    //       default: "pending",
+    //     },
+    //     date: {
+    //       type: Date,
+    //       default: Date.now,
+    //     },
+    //   },
+    // ],
+
+
     sended_requests: [
       {
         user: {
-          type: Object, // Store the entire user document
+          type: Object, // Store the full user object
           required: true,
         },
-        status: {
-          type: String,
-          default: "pending",
-        },
-        date: {
-          type: Date,
-          default: Date.now,
+        status: { type: String, default: "pending" },
+        date: { type: Date, default: Date.now },
+        providerrating: {
+          value: { type: Number, min: 1, max: 10 }, // Rating value (1-10)
+          comment: { type: String }, // Optional comment
+          date: { type: Date, default: Date.now }, // Date of rating
         },
       },
     ],
+
     received_requests: [
       {
         user: {
-          type: Object, // Store the entire user document
+          type: Object, // Store the full user object
           required: true,
         },
-        status: {
-          type: String,
-          default: "pending",
-        },
-        date: {
-          type: Date,
-          default: Date.now,
+        status: { type: String, default: "pending" },
+        date: { type: Date, default: Date.now },
+        userrating: {
+          value: { type: Number, min: 1, max: 10 }, // Rating value (1-10)
+          comment: { type: String }, // Optional comment
+          date: { type: Date, default: Date.now }, // Date of rating
         },
       },
     ],
